@@ -1,8 +1,21 @@
-function App() {
+import { useState, type CSSProperties } from 'react'
+import ResearchPage from './pages/ResearchPage'
+
+const navStyle = (active: boolean): CSSProperties => ({
+  padding: '0.4rem 0.9rem',
+  fontSize: '1rem',
+  border: '1px solid #ddd',
+  borderRadius: '6px',
+  background: active ? '#eef2ff' : '#fff',
+  fontWeight: active ? 700 : 400,
+  cursor: 'pointer',
+})
+
+function Home() {
   return (
     <main
       style={{
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 53px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -19,6 +32,34 @@ function App() {
         训练记录 · 计划自适应 · 科研证据 · 动作检查
       </p>
     </main>
+  )
+}
+
+function App() {
+  const [page, setPage] = useState<'home' | 'research'>('home')
+
+  return (
+    <>
+      <nav
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          padding: '0.6rem 1rem',
+          borderBottom: '1px solid #eee',
+          position: 'sticky',
+          top: 0,
+          background: '#fff',
+        }}
+      >
+        <button type="button" onClick={() => setPage('home')} style={navStyle(page === 'home')}>
+          首页
+        </button>
+        <button type="button" onClick={() => setPage('research')} style={navStyle(page === 'research')}>
+          科研
+        </button>
+      </nav>
+      {page === 'home' ? <Home /> : <ResearchPage />}
+    </>
   )
 }
 
