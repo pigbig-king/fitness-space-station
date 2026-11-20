@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
+import { EngagementPanel } from '@/components/engagement'
 import { apiFetch } from '@/lib/api'
 import { bilibiliUrlToIframe } from '@/lib/bilibili'
 
@@ -12,6 +13,7 @@ type VideoDetail = {
   duration: number | null
   description: string | null
   categories: Category[]
+  _count: { favorites: number; likes: number; comments: number }
 }
 
 export default function VideoDetailPage() {
@@ -50,7 +52,14 @@ export default function VideoDetailPage() {
       </div>
       {video.description && <p className="whitespace-pre-wrap text-muted-foreground">{video.description}</p>}
 
-      <p className="mt-6 text-sm text-muted-foreground">关联证据（后续模块补充）</p>
+      <div className="mt-6">
+        <EngagementPanel
+          kind="video"
+          id={video.id}
+          initialFavorites={video._count.favorites}
+          initialLikes={video._count.likes}
+        />
+      </div>
     </main>
   )
 }

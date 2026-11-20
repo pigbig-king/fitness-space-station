@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import ReactMarkdown from 'react-markdown'
+import { EngagementPanel } from '@/components/engagement'
 import { apiFetch } from '@/lib/api'
 import { EVIDENCE_COLORS, EVIDENCE_LABELS, type EvidenceLevel } from '@/lib/evidence'
 
@@ -20,6 +21,7 @@ type Article = {
   content: string
   categories: { id: string; name: string }[]
   references: Reference[]
+  _count: { favorites: number; likes: number; comments: number }
 }
 
 export default function ArticleDetailPage() {
@@ -54,6 +56,15 @@ export default function ArticleDetailPage() {
       <article className="markdown">
         <ReactMarkdown>{article.content}</ReactMarkdown>
       </article>
+
+      <div className="mt-6">
+        <EngagementPanel
+          kind="article"
+          id={article.id}
+          initialFavorites={article._count.favorites}
+          initialLikes={article._count.likes}
+        />
+      </div>
 
       <h2 className="mt-8 mb-3 text-lg font-semibold">参考文献</h2>
       {article.references.length === 0 ? (

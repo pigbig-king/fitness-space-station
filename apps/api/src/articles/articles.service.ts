@@ -18,7 +18,11 @@ export class ArticlesService {
   async findOne(id: string) {
     const article = await this.prisma.article.findUnique({
       where: { id },
-      include: { categories: true, references: true },
+      include: {
+        categories: true,
+        references: true,
+        _count: { select: { favorites: true, likes: true, comments: true } },
+      },
     })
     if (!article) throw new NotFoundException('文章不存在')
     return article
