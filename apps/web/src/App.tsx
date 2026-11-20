@@ -5,7 +5,8 @@ import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ResearchPage from './pages/ResearchPage'
-import VideoPage from './pages/VideoPage'
+import VideoDetailPage from './pages/VideoDetailPage'
+import VideosPage from './pages/VideosPage'
 
 const navStyle = (active: boolean): CSSProperties => ({
   padding: '0.4rem 0.9rem',
@@ -43,7 +44,7 @@ function Home() {
   )
 }
 
-type Page = 'home' | 'research' | 'log' | 'video'
+type Page = 'home' | 'research' | 'log'
 
 function MainApp() {
   const [page, setPage] = useState<Page>('home')
@@ -52,7 +53,6 @@ function MainApp() {
   function renderPage() {
     if (page === 'research') return <ResearchPage />
     if (page === 'log') return <LogPage />
-    if (page === 'video') return <VideoPage />
     return <Home />
   }
 
@@ -79,9 +79,9 @@ function MainApp() {
         <button type="button" onClick={() => setPage('log')} style={navStyle(page === 'log')}>
           记录
         </button>
-        <button type="button" onClick={() => setPage('video')} style={navStyle(page === 'video')}>
+        <Link to="/videos" style={navStyle(false)}>
           视频
-        </button>
+        </Link>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {user ? (
             <>
@@ -107,6 +107,8 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/videos" element={<VideosPage />} />
+      <Route path="/videos/:id" element={<VideoDetailPage />} />
       <Route path="/*" element={<MainApp />} />
     </Routes>
   )
