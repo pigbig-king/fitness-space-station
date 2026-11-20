@@ -5,6 +5,17 @@ import { PrismaService } from '../prisma/prisma.service'
 export class CommentsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  findAll() {
+    return this.prisma.comment.findMany({
+      include: {
+        user: { select: { id: true, email: true } },
+        video: { select: { id: true, title: true } },
+        article: { select: { id: true, title: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
   listByVideo(videoId: string) {
     return this.prisma.comment.findMany({
       where: { videoId },
