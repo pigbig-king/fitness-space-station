@@ -23,9 +23,14 @@ export default function ArticlesPage() {
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← 返回首页
         </Link>
-        <Link to="/research" className="text-sm text-primary hover:underline">
-          PubMed 文献检索 →
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/articles/new" className="text-sm text-primary hover:underline">
+            + 发表文章
+          </Link>
+          <Link to="/research" className="text-sm text-primary hover:underline">
+            PubMed 文献检索 →
+          </Link>
+        </div>
       </div>
       <h1 className="mb-4 text-2xl font-semibold">科研证据</h1>
 

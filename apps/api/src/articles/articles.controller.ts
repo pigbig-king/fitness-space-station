@@ -21,7 +21,6 @@ export class ArticlesController {
     return this.articlesService.findOne(id)
   }
 
-  @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateArticleDto) {
     return this.articlesService.create(dto)
