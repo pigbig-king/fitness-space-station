@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react'
 import { Link, Route, Routes } from 'react-router'
 import ProtectedRoute from './components/protected-route'
 import { useAuth } from './contexts/auth-context'
+import ArticleCreatePage from './pages/ArticleCreatePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
 import FavoritesPage from './pages/FavoritesPage'
@@ -116,6 +117,14 @@ function App() {
       <Route path="/videos" element={<VideosPage />} />
       <Route path="/videos/:id" element={<VideoDetailPage />} />
       <Route path="/articles" element={<ArticlesPage />} />
+      <Route
+        path="/articles/new"
+        element={
+          <ProtectedRoute>
+            <ArticleCreatePage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/articles/:id" element={<ArticleDetailPage />} />
       <Route path="/research" element={<ResearchPage />} />
       <Route

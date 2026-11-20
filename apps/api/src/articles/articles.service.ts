@@ -33,7 +33,7 @@ export class ArticlesService {
       data: {
         title: dto.title,
         content: dto.content,
-        status: dto.status ?? 'DRAFT',
+        status: dto.status ?? 'PUBLISHED',
         categories: dto.categoryIds?.length
           ? { connect: dto.categoryIds.map((id) => ({ id })) }
           : undefined,
