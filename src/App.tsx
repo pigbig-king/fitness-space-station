@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import ResearchPage from './pages/ResearchPage'
+import LogPage from './pages/LogPage'
 
 const navStyle = (active: boolean): CSSProperties => ({
   padding: '0.4rem 0.9rem',
@@ -35,8 +36,16 @@ function Home() {
   )
 }
 
+type Page = 'home' | 'research' | 'log'
+
 function App() {
-  const [page, setPage] = useState<'home' | 'research'>('home')
+  const [page, setPage] = useState<Page>('home')
+
+  function renderPage() {
+    if (page === 'research') return <ResearchPage />
+    if (page === 'log') return <LogPage />
+    return <Home />
+  }
 
   return (
     <>
@@ -57,8 +66,11 @@ function App() {
         <button type="button" onClick={() => setPage('research')} style={navStyle(page === 'research')}>
           科研
         </button>
+        <button type="button" onClick={() => setPage('log')} style={navStyle(page === 'log')}>
+          记录
+        </button>
       </nav>
-      {page === 'home' ? <Home /> : <ResearchPage />}
+      {renderPage()}
     </>
   )
 }
