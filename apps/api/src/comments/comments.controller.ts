@@ -9,6 +9,12 @@ import { CreateCommentDto } from './dto/create-comment.dto'
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @Roles('ADMIN')
+  @Get('comments')
+  findAll() {
+    return this.commentsService.findAll()
+  }
+
   @Public()
   @Get('videos/:id/comments')
   listByVideo(@Param('id') id: string) {

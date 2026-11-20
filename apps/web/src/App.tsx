@@ -1,7 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 import { Link, Route, Routes } from 'react-router'
+import AdminGuard from './components/admin-guard'
 import ProtectedRoute from './components/protected-route'
 import { useAuth } from './contexts/auth-context'
+import AdminPage from './pages/admin/AdminPage'
+import ArticleEditPage from './pages/admin/ArticleEditPage'
 import ArticleCreatePage from './pages/ArticleCreatePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
@@ -92,6 +95,11 @@ function MainApp() {
               <Link to="/me/favorites" style={navStyle(false)}>
                 我的收藏
               </Link>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" style={navStyle(false)}>
+                  管理后台
+                </Link>
+              )}
               <span style={{ fontSize: '0.9rem', color: '#555' }}>{user.email}</span>
               <button type="button" onClick={logout} style={navStyle(false)}>
                 退出
@@ -133,6 +141,22 @@ function App() {
           <ProtectedRoute>
             <FavoritesPage />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <AdminGuard>
+            <AdminPage />
+          </AdminGuard>
+        }
+      />
+      <Route
+        path="/admin/articles/:id/edit"
+        element={
+          <AdminGuard>
+            <ArticleEditPage />
+          </AdminGuard>
         }
       />
       <Route path="/*" element={<MainApp />} />
