@@ -1,6 +1,8 @@
 import { useState, type CSSProperties } from 'react'
 import { Link, Route, Routes } from 'react-router'
 import { useAuth } from './contexts/auth-context'
+import ArticleDetailPage from './pages/ArticleDetailPage'
+import ArticlesPage from './pages/ArticlesPage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -44,14 +46,13 @@ function Home() {
   )
 }
 
-type Page = 'home' | 'research' | 'log'
+type Page = 'home' | 'log'
 
 function MainApp() {
   const [page, setPage] = useState<Page>('home')
   const { user, logout } = useAuth()
 
   function renderPage() {
-    if (page === 'research') return <ResearchPage />
     if (page === 'log') return <LogPage />
     return <Home />
   }
@@ -73,9 +74,9 @@ function MainApp() {
         <button type="button" onClick={() => setPage('home')} style={navStyle(page === 'home')}>
           首页
         </button>
-        <button type="button" onClick={() => setPage('research')} style={navStyle(page === 'research')}>
+        <Link to="/articles" style={navStyle(false)}>
           科研
-        </button>
+        </Link>
         <button type="button" onClick={() => setPage('log')} style={navStyle(page === 'log')}>
           记录
         </button>
@@ -109,6 +110,9 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/videos" element={<VideosPage />} />
       <Route path="/videos/:id" element={<VideoDetailPage />} />
+      <Route path="/articles" element={<ArticlesPage />} />
+      <Route path="/articles/:id" element={<ArticleDetailPage />} />
+      <Route path="/research" element={<ResearchPage />} />
       <Route path="/*" element={<MainApp />} />
     </Routes>
   )

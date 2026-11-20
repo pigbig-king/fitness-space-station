@@ -3,11 +3,14 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { ArticlesModule } from './articles/articles.module'
 import { AuthModule } from './auth/auth.module'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { RolesGuard } from './auth/roles.guard'
 import { CategoriesModule } from './categories/categories.module'
 import { PrismaModule } from './prisma/prisma.module'
+import { PubmedModule } from './pubmed/pubmed.module'
+import { ReferencesModule } from './references/references.module'
 import { UsersModule } from './users/users.module'
 import { VideosModule } from './videos/videos.module'
 
@@ -19,6 +22,9 @@ import { VideosModule } from './videos/videos.module'
     UsersModule,
     CategoriesModule,
     VideosModule,
+    ArticlesModule,
+    ReferencesModule,
+    PubmedModule,
   ],
   controllers: [AppController],
   providers: [
