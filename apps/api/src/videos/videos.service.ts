@@ -37,7 +37,11 @@ export class VideosService {
   async findOne(id: string) {
     const video = await this.prisma.video.findUnique({
       where: { id },
-      include: { categories: true, references: true },
+      include: {
+        categories: true,
+        references: true,
+        _count: { select: { favorites: true, likes: true, comments: true } },
+      },
     })
     if (!video) throw new NotFoundException('视频不存在')
     return video

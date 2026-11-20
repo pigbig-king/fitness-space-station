@@ -1,8 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 import { Link, Route, Routes } from 'react-router'
+import ProtectedRoute from './components/protected-route'
 import { useAuth } from './contexts/auth-context'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
+import FavoritesPage from './pages/FavoritesPage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -86,6 +88,9 @@ function MainApp() {
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {user ? (
             <>
+              <Link to="/me/favorites" style={navStyle(false)}>
+                我的收藏
+              </Link>
               <span style={{ fontSize: '0.9rem', color: '#555' }}>{user.email}</span>
               <button type="button" onClick={logout} style={navStyle(false)}>
                 退出
@@ -113,6 +118,14 @@ function App() {
       <Route path="/articles" element={<ArticlesPage />} />
       <Route path="/articles/:id" element={<ArticleDetailPage />} />
       <Route path="/research" element={<ResearchPage />} />
+      <Route
+        path="/me/favorites"
+        element={
+          <ProtectedRoute>
+            <FavoritesPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/*" element={<MainApp />} />
     </Routes>
   )

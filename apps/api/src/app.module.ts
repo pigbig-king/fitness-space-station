@@ -8,9 +8,13 @@ import { AuthModule } from './auth/auth.module'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { RolesGuard } from './auth/roles.guard'
 import { CategoriesModule } from './categories/categories.module'
+import { CommentsModule } from './comments/comments.module'
+import { FavoritesModule } from './favorites/favorites.module'
+import { LikesModule } from './likes/likes.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
+import { ReportsModule } from './reports/reports.module'
 import { UsersModule } from './users/users.module'
 import { VideosModule } from './videos/videos.module'
 
@@ -25,6 +29,10 @@ import { VideosModule } from './videos/videos.module'
     ArticlesModule,
     ReferencesModule,
     PubmedModule,
+    FavoritesModule,
+    LikesModule,
+    CommentsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [
