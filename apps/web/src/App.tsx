@@ -1,6 +1,10 @@
 import { useState, type CSSProperties } from 'react'
-import ResearchPage from './pages/ResearchPage'
+import { Link, Route, Routes } from 'react-router'
+import { useAuth } from './contexts/auth-context'
 import LogPage from './pages/LogPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ResearchPage from './pages/ResearchPage'
 import VideoPage from './pages/VideoPage'
 
 const navStyle = (active: boolean): CSSProperties => ({
@@ -11,6 +15,8 @@ const navStyle = (active: boolean): CSSProperties => ({
   background: active ? '#eef2ff' : '#fff',
   fontWeight: active ? 700 : 400,
   cursor: 'pointer',
+  textDecoration: 'none',
+  color: '#000',
 })
 
 function Home() {
@@ -39,8 +45,9 @@ function Home() {
 
 type Page = 'home' | 'research' | 'log' | 'video'
 
-function App() {
+function MainApp() {
   const [page, setPage] = useState<Page>('home')
+  const { user, logout } = useAuth()
 
   function renderPage() {
     if (page === 'research') return <ResearchPage />
@@ -54,6 +61,7 @@ function App() {
       <nav
         style={{
           display: 'flex',
+          alignItems: 'center',
           gap: '0.5rem',
           padding: '0.6rem 1rem',
           borderBottom: '1px solid #eee',
@@ -74,9 +82,33 @@ function App() {
         <button type="button" onClick={() => setPage('video')} style={navStyle(page === 'video')}>
           视频
         </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {user ? (
+            <>
+              <span style={{ fontSize: '0.9rem', color: '#555' }}>{user.email}</span>
+              <button type="button" onClick={logout} style={navStyle(false)}>
+                退出
+              </button>
+            </>
+          ) : (
+            <Link to="/login" style={navStyle(false)}>
+              登录
+            </Link>
+          )}
+        </div>
       </nav>
       {renderPage()}
     </>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/*" element={<MainApp />} />
+    </Routes>
   )
 }
 
