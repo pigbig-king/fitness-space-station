@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import ResearchPage from './pages/ResearchPage'
 import LogPage from './pages/LogPage'
+import VideoPage from './pages/VideoPage'
 
 const navStyle = (active: boolean): CSSProperties => ({
   padding: '0.4rem 0.9rem',
@@ -36,7 +37,7 @@ function Home() {
   )
 }
 
-type Page = 'home' | 'research' | 'log'
+type Page = 'home' | 'research' | 'log' | 'video'
 
 function App() {
   const [page, setPage] = useState<Page>('home')
@@ -44,6 +45,7 @@ function App() {
   function renderPage() {
     if (page === 'research') return <ResearchPage />
     if (page === 'log') return <LogPage />
+    if (page === 'video') return <VideoPage />
     return <Home />
   }
 
@@ -68,6 +70,9 @@ function App() {
         </button>
         <button type="button" onClick={() => setPage('log')} style={navStyle(page === 'log')}>
           记录
+        </button>
+        <button type="button" onClick={() => setPage('video')} style={navStyle(page === 'video')}>
+          视频
         </button>
       </nav>
       {renderPage()}
