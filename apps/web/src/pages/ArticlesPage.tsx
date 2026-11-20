@@ -32,7 +32,7 @@ export default function ArticlesPage() {
           </Link>
         </div>
       </div>
-      <h1 className="mb-4 text-2xl font-semibold">科研证据</h1>
+      <h1 className="mb-4 text-2xl font-semibold">社区</h1>
 
       {query.isLoading && <p className="text-muted-foreground">加载中…</p>}
       {query.isError && <p className="text-destructive">加载失败，请确认后端已启动</p>}

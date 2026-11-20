@@ -43,7 +43,7 @@ function Home() {
     >
       <h1 style={{ margin: 0, fontSize: '2rem' }}>健身空间站 Fitness Space Station</h1>
       <p style={{ margin: 0, color: '#555' }}>
-        训练记录 · 计划自适应 · 科研证据 · 动作检查
+        训练记录 · 计划自适应 · 社区 · 动作检查
       </p>
     </main>
   )
@@ -78,7 +78,7 @@ function MainApp() {
           首页
         </button>
         <Link to="/articles" style={navStyle(false)}>
-          科研
+          社区
         </Link>
         <button type="button" onClick={() => setPage('log')} style={navStyle(page === 'log')}>
           记录
