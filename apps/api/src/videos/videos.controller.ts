@@ -19,6 +19,7 @@ export class VideosController {
     @Query('category') category?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('sort') sort?: string,
     @CurrentUserOptional() viewer?: AuthUser | null,
   ) {
     return this.videosService.findAll(
@@ -27,6 +28,7 @@ export class VideosController {
         category,
         page: page ? parseInt(page, 10) : undefined,
         pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
+        sort: sort === 'hot' ? 'hot' : 'latest',
       },
       viewer ?? null,
     )

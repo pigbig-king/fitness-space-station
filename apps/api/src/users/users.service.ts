@@ -62,9 +62,11 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('用户不存在')
     }
-    const articleCount = await this.prisma.article.count({
-      where: { authorId: id, status: 'PUBLISHED' },
-    })
-    return { ...user, articleCount }
+    const [articleCount, followerCount, followingCount] = await Promise.all([
+      this.prisma.article.count({ where: { authorId: id, status: 'PUBLISHED' } }),
+      this.prisma.follow.count({ where: { followingId: id } }),
+      this.prisma.follow.count({ where: { followerId: id } }),
+    ])
+    return { ...user, articleCount, followerCount, followingCount }
   }
 }

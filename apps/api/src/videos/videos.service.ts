@@ -14,7 +14,13 @@ export class VideosService {
   ) {}
 
   async findAll(
-    query: { q?: string; category?: string; page?: number; pageSize?: number },
+    query: {
+      q?: string
+      category?: string
+      page?: number
+      pageSize?: number
+      sort?: 'latest' | 'hot'
+    },
     viewer: AuthUser | null,
   ) {
     const page = Math.max(1, query.page ?? 1)
@@ -32,7 +38,10 @@ export class VideosService {
       this.prisma.video.findMany({
         where,
         include: { categories: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          query.sort === 'hot'
+            ? [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }]
+            : [{ createdAt: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

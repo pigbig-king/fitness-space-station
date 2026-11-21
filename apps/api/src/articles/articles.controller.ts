@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CurrentUser, CurrentUserOptional, type AuthUser } from '../auth/current-user.decorator'
 import { OptionalAuthGuard } from '../auth/optional-auth.guard'
 import { Public } from '../auth/public.decorator'
@@ -13,8 +13,17 @@ export class ArticlesController {
   @Public()
   @UseGuards(OptionalAuthGuard)
   @Get()
-  findAll(@CurrentUserOptional() viewer: AuthUser | null) {
-    return this.articlesService.findAll(viewer)
+  findAll(
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('sort') sort?: string,
+    @CurrentUserOptional() viewer?: AuthUser | null,
+  ) {
+    return this.articlesService.findAll(viewer ?? null, {
+      page: page ? parseInt(page, 10) : undefined,
+      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
+      sort: sort === 'hot' ? 'hot' : 'latest',
+    })
   }
 
   @Public()
