@@ -7,12 +7,15 @@ import { useAuth } from '@/contexts/auth-context'
 import { apiFetch } from '@/lib/api'
 
 type Category = { id: string; name: string; type: string }
+type Reference = { id: string; title: string; summaryZh: string | null }
 type Article = {
   id: string
   title: string
   content: string
   status: string
   categories: Category[]
+  references: { id: string }[]
+  tags: { id: string; name: string }[]
 }
 
 export default function ArticleEditPage() {
@@ -46,16 +49,32 @@ function EditForm({
   const [content, setContent] = useState(article.content)
   const [status, setStatus] = useState<'PUBLISHED' | 'DRAFT'>(article.status as 'PUBLISHED' | 'DRAFT')
   const [categoryId, setCategoryId] = useState(article.categories[0]?.id ?? '')
+  const [tagText, setTagText] = useState(article.tags.map((t) => t.name).join(', '))
+  const [referenceIds, setReferenceIds] = useState<string[]>(
+    article.references.map((r) => r.id),
+  )
   const [error, setError] = useState<string | null>(null)
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
     queryFn: () => apiFetch<Category[]>('/categories'),
   })
+  const referencesQuery = useQuery({
+    queryKey: ['references'],
+    queryFn: () => apiFetch<Reference[]>('/references'),
+  })
+
+  function toggleReference(id: string) {
+    setReferenceIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
+  }
 
   const mutation = useMutation({
-    mutationFn: () =>
-      apiFetch(`/articles/${article.id}`, {
+    mutationFn: () => {
+      const tagNames = tagText
+        .split(/[,，\s]+/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+      return apiFetch(`/articles/${article.id}`, {
         method: 'PATCH',
         token,
         body: {
@@ -63,8 +82,11 @@ function EditForm({
           content: content.trim(),
           status,
           categoryIds: categoryId ? [categoryId] : [],
+          tagNames,
+          referenceIds,
         },
-      }),
+      })
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin-articles'] })
       onDone()
@@ -118,6 +140,26 @@ function EditForm({
               <option value="PUBLISHED">发布</option>
               <option value="DRAFT">草稿</option>
             </select>
+          </div>
+          <div className="flex-1">
+            <label className="mb-1 block text-sm">标签（用逗号分隔）</label>
+            <Input value={tagText} onChange={(e) => setTagText(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm">关联文献</label>
+          <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
+            {referencesQuery.data?.map((r) => (
+              <label key={r.id} className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={referenceIds.includes(r.id)}
+                  onChange={() => toggleReference(r.id)}
+                  className="mt-0.5"
+                />
+                <span className="line-clamp-2">{r.title}</span>
+              </label>
+            ))}
           </div>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}

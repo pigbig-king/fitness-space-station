@@ -14,7 +14,6 @@ export class ReferencesController {
     return this.referencesService.findAll()
   }
 
-  @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateReferenceDto) {
     return this.referencesService.create(dto)

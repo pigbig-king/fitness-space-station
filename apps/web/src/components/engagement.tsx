@@ -8,7 +8,9 @@ import { apiFetch } from '@/lib/api'
 type Kind = 'video' | 'article'
 type MyItem = { id: string; videoId: string | null; articleId: string | null }
 type ToggleResult = { count: number }
-type Comment = { id: string; content: string; user: { email: string; nickname: string | null } }
+type CommentUser = { id: string; email: string; nickname: string | null; avatarUrl: string | null }
+type Comment = { id: string; content: string; user: CommentUser; replies: Comment[] }
+type CommentList = { total: number; items: Comment[] }
 
 export function EngagementPanel({
   kind,
@@ -31,6 +33,9 @@ export function EngagementPanel({
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState('')
   const [commentText, setCommentText] = useState('')
+  const [commentPage, setCommentPage] = useState(1)
+  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
 
   const myFavorites = useQuery({
     queryKey: ['my-favorites'],
@@ -68,16 +73,29 @@ export function EngagementPanel({
   })
 
   const commentsQuery = useQuery({
-    queryKey: [`${kind}-comments`, id],
-    queryFn: () => apiFetch<Comment[]>(`/${kind}s/${id}/comments`),
+    queryKey: [`${kind}-comments`, id, commentPage],
+    queryFn: () => apiFetch<CommentList>(`/${kind}s/${id}/comments?page=${commentPage}`),
   })
+
+  const invalidateComments = () =>
+    queryClient.invalidateQueries({ queryKey: [`${kind}-comments`, id] })
 
   const commentMutation = useMutation({
     mutationFn: (content: string) =>
       apiFetch(`/${kind}s/${id}/comments`, { method: 'POST', token, body: { content } }),
     onSuccess: () => {
       setCommentText('')
-      void queryClient.invalidateQueries({ queryKey: [`${kind}-comments`, id] })
+      void invalidateComments()
+    },
+  })
+
+  const replyMutation = useMutation({
+    mutationFn: ({ parentId, content }: { parentId: string; content: string }) =>
+      apiFetch(`/${kind}s/${id}/comments`, { method: 'POST', token, body: { content, parentId } }),
+    onSuccess: () => {
+      setReplyTo(null)
+      setReplyText('')
+      void invalidateComments()
     },
   })
 
@@ -93,6 +111,9 @@ export function EngagementPanel({
       setReportReason('')
     },
   })
+
+  const totalComments = commentsQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalComments / 20))
 
   return (
     <div className="space-y-5">
@@ -141,7 +162,7 @@ export function EngagementPanel({
       )}
 
       <div>
-        <h3 className="mb-2 font-medium">评论（{commentsQuery.data?.length ?? 0}）</h3>
+        <h3 className="mb-2 font-medium">评论（{totalComments}）</h3>
         {token ? (
           <div className="mb-3 flex gap-2">
             <textarea
@@ -163,14 +184,86 @@ export function EngagementPanel({
             登录后发表评论
           </button>
         )}
+
         <ul className="space-y-2">
-          {commentsQuery.data?.map((c) => (
+          {commentsQuery.data?.items.map((c) => (
             <li key={c.id} className="rounded-lg border p-3 text-sm">
               <div className="text-xs text-muted-foreground">{c.user.nickname ?? c.user.email}</div>
               <div className="mt-1 whitespace-pre-wrap">{c.content}</div>
+              <div className="mt-1">
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    if (!token) return requireLogin()
+                    setReplyTo(replyTo === c.id ? null : c.id)
+                    setReplyText('')
+                  }}
+                >
+                  回复
+                </button>
+              </div>
+
+              {replyTo === c.id && (
+                <div className="mt-2 flex gap-2">
+                  <input
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={`回复 ${c.user.nickname ?? c.user.email}…`}
+                    className="min-h-[32px] flex-1 rounded-md border border-input bg-transparent p-2 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => replyMutation.mutate({ parentId: c.id, content: replyText })}
+                    disabled={!replyText.trim() || replyMutation.isPending}
+                  >
+                    回复
+                  </Button>
+                </div>
+              )}
+
+              {c.replies.length > 0 && (
+                <ul className="mt-2 space-y-2 border-l-2 pl-3">
+                  {c.replies.map((r) => (
+                    <li key={r.id} className="text-sm">
+                      <span className="text-xs text-muted-foreground">{r.user.nickname ?? r.user.email}</span>
+                      <span className="mx-1 text-xs text-muted-foreground">回复</span>
+                      <span className="text-xs text-muted-foreground">{c.user.nickname ?? c.user.email}</span>
+                      <div className="mt-0.5 whitespace-pre-wrap">{r.content}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
+
+        {totalPages > 1 && (
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={commentPage <= 1}
+              onClick={() => setCommentPage((p) => Math.max(1, p - 1))}
+            >
+              上一页
+            </Button>
+            <span className="text-muted-foreground">
+              {commentPage} / {totalPages}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={commentPage >= totalPages}
+              onClick={() => setCommentPage((p) => p + 1)}
+            >
+              下一页
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

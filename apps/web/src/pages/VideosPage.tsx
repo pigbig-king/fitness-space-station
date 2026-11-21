@@ -28,6 +28,8 @@ export default function VideosPage() {
   const [q, setQ] = useState('')
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [sort, setSort] = useState<'latest' | 'hot'>('latest')
+  const [page, setPage] = useState(1)
 
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
@@ -35,13 +37,15 @@ export default function VideosPage() {
   })
 
   const videosQuery = useQuery({
-    queryKey: ['videos', category, search],
+    queryKey: ['videos', category, search, sort, page],
     queryFn: () => {
       const params = new URLSearchParams()
       if (category) params.set('category', category)
       if (search) params.set('q', search)
-      const qs = params.toString()
-      return apiFetch<VideoListResponse>(`/videos${qs ? `?${qs}` : ''}`)
+      params.set('sort', sort)
+      params.set('page', String(page))
+      params.set('pageSize', '18')
+      return apiFetch<VideoListResponse>(`/videos?${params.toString()}`)
     },
   })
 
@@ -52,6 +56,8 @@ export default function VideosPage() {
     grouped.set(c.type, list)
   }
 
+  const totalPages = Math.max(1, Math.ceil((videosQuery.data?.total ?? 0) / 18))
+
   return (
     <main className="mx-auto max-w-5xl p-6">
       <Link to="/" className="mb-4 inline-block text-sm text-muted-foreground hover:text-foreground">
@@ -59,22 +65,34 @@ export default function VideosPage() {
       </Link>
       <h1 className="mb-4 text-2xl font-semibold">动作视频库</h1>
 
-      <div className="mb-6 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') setSearch(q)
+            if (e.key === 'Enter') {
+              setSearch(q)
+              setPage(1)
+            }
           }}
           placeholder="搜索视频标题"
           className="max-w-xs"
         />
-        <Button type="button" onClick={() => setSearch(q)}>
+        <Button
+          type="button"
+          onClick={() => {
+            setSearch(q)
+            setPage(1)
+          }}
+        >
           搜索
         </Button>
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => {
+            setCategory(e.target.value)
+            setPage(1)
+          }}
           className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
         >
           <option value="">全部分类</option>
@@ -88,6 +106,30 @@ export default function VideosPage() {
             </optgroup>
           ))}
         </select>
+        <div className="ml-auto flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={sort === 'latest' ? 'secondary' : 'outline'}
+            onClick={() => {
+              setSort('latest')
+              setPage(1)
+            }}
+          >
+            最新
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={sort === 'hot' ? 'secondary' : 'outline'}
+            onClick={() => {
+              setSort('hot')
+              setPage(1)
+            }}
+          >
+            最热
+          </Button>
+        </div>
       </div>
 
       {videosQuery.isLoading && <p className="text-muted-foreground">加载中…</p>}
@@ -124,6 +166,32 @@ export default function VideosPage() {
 
       {videosQuery.data && videosQuery.data.items.length === 0 && (
         <p className="text-muted-foreground">暂无视频，可先用管理员接口录入。</p>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            上一页
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {page} / {totalPages}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            下一页
+          </Button>
+        </div>
       )}
     </main>
   )

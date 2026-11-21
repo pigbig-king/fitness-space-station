@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common'
 import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
 import { Public } from '../auth/public.decorator'
 import { Roles } from '../auth/roles.decorator'
@@ -17,24 +17,32 @@ export class CommentsController {
 
   @Public()
   @Get('videos/:id/comments')
-  listByVideo(@Param('id') id: string) {
-    return this.commentsService.listByVideo(id)
+  listByVideo(@Param('id') id: string, @Query('page') page?: string) {
+    return this.commentsService.listByVideo(id, page ? parseInt(page, 10) : 1)
   }
 
   @Post('videos/:id/comments')
-  createVideo(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: CreateCommentDto) {
-    return this.commentsService.createVideo(user.id, id, dto.content)
+  createVideo(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: CreateCommentDto,
+  ) {
+    return this.commentsService.createVideo(user.id, id, dto.content, dto.parentId)
   }
 
   @Public()
   @Get('articles/:id/comments')
-  listByArticle(@Param('id') id: string) {
-    return this.commentsService.listByArticle(id)
+  listByArticle(@Param('id') id: string, @Query('page') page?: string) {
+    return this.commentsService.listByArticle(id, page ? parseInt(page, 10) : 1)
   }
 
   @Post('articles/:id/comments')
-  createArticle(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: CreateCommentDto) {
-    return this.commentsService.createArticle(user.id, id, dto.content)
+  createArticle(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: CreateCommentDto,
+  ) {
+    return this.commentsService.createArticle(user.id, id, dto.content, dto.parentId)
   }
 
   @Roles('ADMIN')

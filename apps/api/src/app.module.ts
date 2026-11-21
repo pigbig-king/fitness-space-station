@@ -10,11 +10,14 @@ import { RolesGuard } from './auth/roles.guard'
 import { CategoriesModule } from './categories/categories.module'
 import { CommentsModule } from './comments/comments.module'
 import { FavoritesModule } from './favorites/favorites.module'
+import { FollowModule } from './follow/follow.module'
 import { LikesModule } from './likes/likes.module'
+import { LlmModule } from './llm/llm.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
 import { ReportsModule } from './reports/reports.module'
+import { TagsModule } from './tags/tags.module'
 import { UsersModule } from './users/users.module'
 import { VideosModule } from './videos/videos.module'
 
@@ -33,6 +36,9 @@ import { VideosModule } from './videos/videos.module'
     LikesModule,
     CommentsModule,
     ReportsModule,
+    FollowModule,
+    TagsModule,
+    LlmModule,
   ],
   controllers: [AppController],
   providers: [

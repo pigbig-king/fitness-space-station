@@ -10,13 +10,19 @@ const include = {
   references: true,
   tags: true,
   author: { select: { id: true, nickname: true, avatarUrl: true } },
+  _count: { select: { favorites: true, likes: true, comments: true } },
 } satisfies Prisma.ArticleInclude
+
+type ListQuery = { page?: number; pageSize?: number; sort?: 'latest' | 'hot' }
 
 @Injectable()
 export class ArticlesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(viewer: AuthUser | null) {
+  async findAll(viewer: AuthUser | null, query: ListQuery = {}) {
+    const page = Math.max(1, query.page ?? 1)
+    const pageSize = Math.min(50, Math.max(1, query.pageSize ?? 10))
+
     const where: Prisma.ArticleWhereInput = {}
     if (viewer?.role === 'ADMIN') {
       // 管理员可见全部
@@ -26,11 +32,23 @@ export class ArticlesService {
       where.status = 'PUBLISHED'
     }
 
-    return this.prisma.article.findMany({
-      where,
-      include,
-      orderBy: { createdAt: 'desc' },
-    })
+    const orderBy: Prisma.ArticleOrderByWithRelationInput[] =
+      query.sort === 'hot'
+        ? [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }]
+        : [{ createdAt: 'desc' }]
+
+    const [total, items] = await Promise.all([
+      this.prisma.article.count({ where }),
+      this.prisma.article.findMany({
+        where,
+        include,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ])
+
+    return { total, page, pageSize, items }
   }
 
   async findOne(id: string, viewer: AuthUser | null) {
@@ -60,6 +78,9 @@ export class ArticlesService {
         references: dto.referenceIds?.length
           ? { connect: dto.referenceIds.map((id) => ({ id })) }
           : undefined,
+        tags: dto.tagNames?.length
+          ? { connectOrCreate: dto.tagNames.map((name) => ({ where: { name }, create: { name } })) }
+          : undefined,
       },
       include,
     })
@@ -83,6 +104,12 @@ export class ArticlesService {
     }
     if (dto.referenceIds !== undefined) {
       data.references = { set: dto.referenceIds.map((id) => ({ id })) }
+    }
+    if (dto.tagNames !== undefined) {
+      data.tags = {
+        set: [],
+        connectOrCreate: dto.tagNames.map((name) => ({ where: { name }, create: { name } })),
+      }
     }
 
     return this.prisma.article.update({ where: { id }, data, include })

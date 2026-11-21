@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/contexts/auth-context'
 import { apiFetch } from '@/lib/api'
 
 type PubmedItem = {
@@ -12,10 +13,14 @@ type PubmedItem = {
 }
 
 export default function ResearchPage() {
+  const { token } = useAuth()
+  const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
   const [items, setItems] = useState<PubmedItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [importing, setImporting] = useState<string | null>(null)
+  const [imported, setImported] = useState<Set<string>>(new Set())
 
   async function handleSearch() {
     const term = keyword.trim()
@@ -31,6 +36,23 @@ export default function ResearchPage() {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleImport(pmid: string) {
+    if (!token) {
+      navigate('/login', { state: { from: '/research' } })
+      return
+    }
+    setImporting(pmid)
+    setError(null)
+    try {
+      await apiFetch('/references', { method: 'POST', token, body: { pmid } })
+      setImported((s) => new Set(s).add(pmid))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setImporting(null)
     }
   }
 
@@ -62,15 +84,30 @@ export default function ResearchPage() {
       {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
 
       <ul className="space-y-3">
-        {items.map((item) => (
-          <li key={item.pmid} className="rounded-lg border p-4">
-            <div className="font-medium leading-snug">{item.title}</div>
-            <div className="mt-1 text-sm text-muted-foreground">
-              {item.journal} · {item.pubdate}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">PMID: {item.pmid}</div>
-          </li>
-        ))}
+        {items.map((item) => {
+          const done = imported.has(item.pmid)
+          return (
+            <li key={item.pmid} className="rounded-lg border p-4">
+              <div className="font-medium leading-snug">{item.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {item.journal} · {item.pubdate}
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <span>PMID: {item.pmid}</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={done || importing === item.pmid}
+                  onClick={() => void handleImport(item.pmid)}
+                  className="ml-auto"
+                >
+                  {done ? '已导入' : importing === item.pmid ? '导入中…' : '导入为文献'}
+                </Button>
+              </div>
+            </li>
+          )
+        })}
       </ul>
 
       {!loading && !error && items.length === 0 && (

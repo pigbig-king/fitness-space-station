@@ -28,4 +28,9 @@ export class CreateArticleDto {
   @IsArray()
   @IsString({ each: true })
   referenceIds?: string[]
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagNames?: string[]
 }

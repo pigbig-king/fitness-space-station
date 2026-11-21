@@ -10,8 +10,13 @@ export type EvidenceLevelValue =
   | 'OTHER'
 
 export class CreateReferenceDto {
+  @IsOptional()
   @IsString()
-  title: string
+  pmid?: string
+
+  @IsOptional()
+  @IsString()
+  title?: string
 
   @IsOptional()
   @IsString()
@@ -32,10 +37,6 @@ export class CreateReferenceDto {
   @IsOptional()
   @IsString()
   url?: string
-
-  @IsOptional()
-  @IsString()
-  pmid?: string
 
   @IsOptional()
   @IsIn(['META_ANALYSIS', 'SYSTEMATIC_REVIEW', 'RCT', 'COHORT', 'CASE_CONTROL', 'EXPERT_OPINION', 'OTHER'])
