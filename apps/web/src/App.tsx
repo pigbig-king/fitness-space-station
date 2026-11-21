@@ -14,6 +14,7 @@ import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import RegisterPage from './pages/RegisterPage'
 import ResearchPage from './pages/ResearchPage'
+import UserProfilePage from './pages/UserProfilePage'
 import VideoDetailPage from './pages/VideoDetailPage'
 import VideosPage from './pages/VideosPage'
 
@@ -63,6 +64,7 @@ function App() {
             </AdminGuard>
           }
         />
+        <Route path="/users/:id" element={<UserProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

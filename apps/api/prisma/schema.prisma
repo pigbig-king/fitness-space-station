@@ -32,16 +32,25 @@ enum EvidenceLevel {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  favorites    Favorite[]
-  comments     Comment[]
-  likes        Like[]
-  reports      Report[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  nickname      String?        @unique
+  avatarUrl     String?
+  bio           String?
+  passwordHash  String
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  favorites     Favorite[]
+  comments      Comment[]
+  likes         Like[]
+  reports       Report[]
+  articles      Article[]
+  following     Follow[]       @relation("follower")
+  followers     Follow[]       @relation("following")
+  notifications Notification[]
+  workoutLogs   WorkoutLog[]
+  plans         Plan[]
 }
 
 model Category {
@@ -75,11 +84,16 @@ model Article {
   id         String        @id @default(cuid())
   title      String
   content    String        // Markdown
+  summary    String?
+  coverUrl   String?
   status     PublishStatus @default(DRAFT)
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   categories Category[]
   references Reference[]
+  tags       Tag[]
   favorites  Favorite[]
   comments   Comment[]
   likes      Like[]
@@ -96,8 +110,62 @@ model Reference {
   url           String?
   pmid          String?       @unique
   evidenceLevel EvidenceLevel?
+  summaryZh     String?
   articles      Article[]
   videos        Video[]
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  articles Article[]
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String   // comment | reply | like | follow
+  actorId    String?
+  targetType String?  // video | article | comment | user
+  targetId   String?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model WorkoutLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      String   // YYYY-MM-DD
+  exercise  String
+  sets      Int
+  reps      Int
+  weight    Float
+  rpe       Float
+  createdAt DateTime @default(now())
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal        String   // 增肌 | 力量 | 减脂
+  level       String   // 初级 | 中级 | 高级
+  daysPerWeek Int
+  contentJson String
+  createdAt   DateTime @default(now())
 }
 
 model Favorite {
@@ -114,15 +182,18 @@ model Favorite {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   videoId   String?
-  video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  video     Video?    @relation(fields: [videoId], references: [id], onDelete: Cascade)
   articleId String?
-  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  article   Article?  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime  @default(now())
 }
 
 model Like {

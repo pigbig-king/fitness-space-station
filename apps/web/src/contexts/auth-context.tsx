@@ -12,6 +12,8 @@ import { apiFetch } from '@/lib/api'
 export type AuthUser = {
   id: string
   email: string
+  nickname: string | null
+  avatarUrl: string | null
   role: string
 }
 

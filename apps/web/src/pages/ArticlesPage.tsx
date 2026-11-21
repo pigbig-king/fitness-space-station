@@ -9,6 +9,7 @@ type Article = {
   createdAt: string
   categories: { id: string; name: string }[]
   references: { id: string }[]
+  author: { id: string; nickname: string | null }
 }
 
 export default function ArticlesPage() {
@@ -46,6 +47,7 @@ export default function ArticlesPage() {
             >
               <div className="font-medium leading-snug">{a.title}</div>
               <div className="mt-1 text-sm text-muted-foreground">
+                {a.author?.nickname ? `${a.author.nickname} · ` : ''}
                 {a.categories.length > 0 ? a.categories.map((c) => c.name).join(' / ') : '未分类'}
                 {a.references.length > 0 ? ` · ${a.references.length} 篇文献` : ''}
               </div>
