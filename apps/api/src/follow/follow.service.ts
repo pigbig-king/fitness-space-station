@@ -1,9 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
+import { NotificationsService } from '../notifications/notifications.service'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class FollowService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async toggle(followerId: string, followingId: string) {
     if (followerId === followingId) {
@@ -16,6 +20,7 @@ export class FollowService {
       await this.prisma.follow.delete({ where: { id: existing.id } })
     } else {
       await this.prisma.follow.create({ data: { followerId, followingId } })
+      void this.notifications.notify(followingId, 'follow', followerId, 'user', followerId)
     }
     const count = await this.prisma.follow.count({ where: { followingId } })
     return { following: !existing, count }

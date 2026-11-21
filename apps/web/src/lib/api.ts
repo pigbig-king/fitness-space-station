@@ -37,3 +37,18 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   return (await res.json()) as T
 }
+
+export async function uploadImage(file: File, token: string | null): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch(`${API_BASE}/uploads`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  })
+  if (!res.ok) {
+    throw new Error(await readError(res))
+  }
+  const data = (await res.json()) as { url: string }
+  return data.url
+}

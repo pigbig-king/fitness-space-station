@@ -31,4 +31,25 @@ export class DeepseekService {
       return null
     }
   }
+
+  async moderate(text: string): Promise<'safe' | 'risky' | 'unknown'> {
+    if (!this.client || !text) return 'unknown'
+    try {
+      const res = await this.client.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content:
+              '你是内容安全审核员。判断以下内容是否含有违规高风险内容（色情、暴力、违法、诈骗、人身攻击、政治敏感等）。只回答 safe 或 risky。',
+          },
+          { role: 'user', content: text.slice(0, 2000) },
+        ],
+      })
+      const verdict = res.choices[0]?.message?.content?.trim().toLowerCase() ?? ''
+      return verdict.includes('risky') ? 'risky' : 'safe'
+    } catch {
+      return 'unknown'
+    }
+  }
 }

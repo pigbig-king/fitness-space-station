@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import ArticleManager from './ArticleManager'
 import CommentManager from './CommentManager'
+import ModerationManager from './ModerationManager'
 import ReportManager from './ReportManager'
 import VideoManager from './VideoManager'
 
@@ -10,6 +11,7 @@ const TABS = [
   { key: 'articles', label: '文章管理' },
   { key: 'comments', label: '评论管理' },
   { key: 'reports', label: '举报管理' },
+  { key: 'moderation', label: '内容审核' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -43,6 +45,7 @@ export default function AdminPage() {
       {tab === 'articles' && <ArticleManager />}
       {tab === 'comments' && <CommentManager />}
       {tab === 'reports' && <ReportManager />}
+      {tab === 'moderation' && <ModerationManager />}
     </main>
   )
 }

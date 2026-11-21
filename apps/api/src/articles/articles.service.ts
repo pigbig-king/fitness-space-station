@@ -1,7 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import type { AuthUser } from '../auth/current-user.decorator'
+import { ModerationService } from '../moderation/moderation.service'
 import { PrismaService } from '../prisma/prisma.service'
+import { SearchService } from '../search/search.service'
 import { CreateArticleDto } from './dto/create-article.dto'
 import { UpdateArticleDto } from './dto/update-article.dto'
 
@@ -13,11 +15,16 @@ const include = {
   _count: { select: { favorites: true, likes: true, comments: true } },
 } satisfies Prisma.ArticleInclude
 
+type ArticleWithInclude = Prisma.ArticleGetPayload<{ include: typeof include }>
 type ListQuery = { page?: number; pageSize?: number; sort?: 'latest' | 'hot' }
 
 @Injectable()
 export class ArticlesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly search: SearchService,
+    private readonly moderation: ModerationService,
+  ) {}
 
   async findAll(viewer: AuthUser | null, query: ListQuery = {}) {
     const page = Math.max(1, query.page ?? 1)
@@ -63,14 +70,15 @@ export class ArticlesService {
     return article
   }
 
-  create(dto: CreateArticleDto, user: AuthUser) {
-    return this.prisma.article.create({
+  async create(dto: CreateArticleDto, user: AuthUser) {
+    const status = this.resolveStatus(dto.status ?? 'PUBLISHED', `${dto.title}\n${dto.content}`)
+    const article = await this.prisma.article.create({
       data: {
         title: dto.title,
         content: dto.content,
         summary: dto.summary,
         coverUrl: dto.coverUrl,
-        status: dto.status ?? 'PUBLISHED',
+        status,
         authorId: user.id,
         categories: dto.categoryIds?.length
           ? { connect: dto.categoryIds.map((id) => ({ id })) }
@@ -84,6 +92,9 @@ export class ArticlesService {
       },
       include,
     })
+    this.syncSearch(article)
+    if (article.status === 'PUBLISHED') void this.moderation.reviewAndMaybeDraft(article.id)
+    return article
   }
 
   async update(id: string, dto: UpdateArticleDto, user: AuthUser) {
@@ -112,7 +123,19 @@ export class ArticlesService {
       }
     }
 
-    return this.prisma.article.update({ where: { id }, data, include })
+    const finalStatus = dto.status ?? article.status
+    if (finalStatus === 'PUBLISHED') {
+      const finalTitle = dto.title ?? article.title
+      const finalContent = dto.content ?? article.content
+      if (this.moderation.containsSensitive(`${finalTitle}\n${finalContent}`).length > 0) {
+        data.status = 'DRAFT'
+      }
+    }
+
+    const updated = await this.prisma.article.update({ where: { id }, data, include })
+    this.syncSearch(updated)
+    if (updated.status === 'PUBLISHED') void this.moderation.reviewAndMaybeDraft(updated.id)
+    return updated
   }
 
   async remove(id: string, user: AuthUser) {
@@ -121,6 +144,28 @@ export class ArticlesService {
     if (user.role !== 'ADMIN' && article.authorId !== user.id) {
       throw new ForbiddenException('无权操作该文章')
     }
-    return this.prisma.article.delete({ where: { id } })
+    await this.prisma.article.delete({ where: { id } })
+    void this.search.deleteArticle(id)
+    return { deleted: true }
+  }
+
+  private resolveStatus(requested: string, text: string): 'DRAFT' | 'PUBLISHED' {
+    if (requested !== 'PUBLISHED') return 'DRAFT'
+    return this.moderation.containsSensitive(text).length > 0 ? 'DRAFT' : 'PUBLISHED'
+  }
+
+  private syncSearch(article: ArticleWithInclude) {
+    void this.search.indexArticle({
+      id: article.id,
+      title: article.title,
+      summary: article.summary ?? '',
+      content: article.content.slice(0, 5000),
+      tags: article.tags.map((t) => t.name).join(' '),
+      authorName: article.author?.nickname ?? '',
+      referenceSummaryZh: article.references
+        .map((r) => r.summaryZh)
+        .filter(Boolean)
+        .join(' '),
+    })
   }
 }
