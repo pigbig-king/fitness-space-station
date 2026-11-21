@@ -1,6 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuth } from '@/contexts/auth-context'
+import { apiFetch } from '@/lib/api'
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-1.5 text-sm ${
@@ -15,10 +17,20 @@ const LINKS = [
 ]
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [keyword, setKeyword] = useState('')
+
+  const unreadQuery = useQuery({
+    queryKey: ['notifications-unread'],
+    queryFn: async () => {
+      const data = await apiFetch<{ unreadCount: number }>('/notifications', { token })
+      return data.unreadCount
+    },
+    enabled: Boolean(token),
+  })
 
   function handleLogout() {
     logout()
@@ -26,11 +38,18 @@ export default function Layout() {
     navigate('/')
   }
 
+  function submitSearch() {
+    const q = keyword.trim()
+    if (!q) return
+    navigate(`/search?q=${encodeURIComponent(q)}`)
+    setKeyword('')
+  }
+
   return (
     <>
       <nav className="sticky top-0 z-20 border-b bg-background">
         <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2.5">
-          <Link to="/" className="mr-2 font-semibold">
+          <Link to="/" className="mr-2 shrink-0 font-semibold">
             健身空间站
           </Link>
 
@@ -43,6 +62,40 @@ export default function Layout() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center sm:flex">
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitSearch()
+                }}
+                placeholder="搜索…"
+                className="h-8 w-40 rounded-md border border-input bg-transparent px-2 text-sm"
+              />
+              <button type="button" onClick={submitSearch} className="rounded-md px-2 py-1 text-sm hover:bg-muted">
+                搜索
+              </button>
+            </div>
+
+            {user && (
+              <button
+                type="button"
+                className="relative rounded-md p-1.5 hover:bg-muted"
+                onClick={() => navigate('/notifications')}
+                aria-label="通知"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {(unreadQuery.data ?? 0) > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] text-white">
+                    {unreadQuery.data}
+                  </span>
+                )}
+              </button>
+            )}
+
             {user ? (
               <div className="relative">
                 <button
@@ -117,6 +170,20 @@ export default function Layout() {
 
         {menuOpen && (
           <div className="border-t px-4 py-2 md:hidden">
+            <div className="mb-2 flex gap-1">
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitSearch()
+                }}
+                placeholder="搜索…"
+                className="h-8 flex-1 rounded-md border border-input bg-transparent px-2 text-sm"
+              />
+              <button type="button" onClick={submitSearch} className="rounded-md px-2 text-sm hover:bg-muted">
+                搜索
+              </button>
+            </div>
             {LINKS.map((l) => (
               <NavLink
                 key={l.to}

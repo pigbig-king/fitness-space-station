@@ -13,11 +13,15 @@ import { FavoritesModule } from './favorites/favorites.module'
 import { FollowModule } from './follow/follow.module'
 import { LikesModule } from './likes/likes.module'
 import { LlmModule } from './llm/llm.module'
+import { ModerationModule } from './moderation/moderation.module'
+import { NotificationsModule } from './notifications/notifications.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
 import { ReportsModule } from './reports/reports.module'
+import { SearchModule } from './search/search.module'
 import { TagsModule } from './tags/tags.module'
+import { UploadsModule } from './uploads/uploads.module'
 import { UsersModule } from './users/users.module'
 import { VideosModule } from './videos/videos.module'
 
@@ -39,6 +43,10 @@ import { VideosModule } from './videos/videos.module'
     FollowModule,
     TagsModule,
     LlmModule,
+    UploadsModule,
+    SearchModule,
+    NotificationsModule,
+    ModerationModule,
   ],
   controllers: [AppController],
   providers: [

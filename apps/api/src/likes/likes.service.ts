@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common'
+import { NotificationsService } from '../notifications/notifications.service'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class LikesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async toggleVideo(userId: string, videoId: string) {
     const existing = await this.prisma.like.findUnique({
@@ -35,6 +39,11 @@ export class LikesService {
       await this.prisma.like.delete({ where: { id: existing.id } })
     } else {
       await this.prisma.like.create({ data: { userId, articleId } })
+      const article = await this.prisma.article.findUnique({
+        where: { id: articleId },
+        select: { authorId: true },
+      })
+      if (article) void this.notifications.notify(article.authorId, 'like', userId, 'article', articleId)
     }
     const count = await this.prisma.like.count({ where: { articleId } })
     return { liked: !existing, count }

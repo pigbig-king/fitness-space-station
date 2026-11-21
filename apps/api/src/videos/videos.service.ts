@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import type { AuthUser } from '../auth/current-user.decorator'
 import { PrismaService } from '../prisma/prisma.service'
+import { SearchService } from '../search/search.service'
 import { BilibiliService } from './bilibili.service'
 import { CreateVideoDto } from './dto/create-video.dto'
 import { UpdateVideoDto } from './dto/update-video.dto'
@@ -11,6 +12,7 @@ export class VideosService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bilibili: BilibiliService,
+    private readonly search: SearchService,
   ) {}
 
   async findAll(
@@ -83,7 +85,9 @@ export class VideosService {
       data.categories = { connect: dto.categoryIds.map((id) => ({ id })) }
     }
 
-    return this.prisma.video.create({ data, include: { categories: true } })
+    const video = await this.prisma.video.create({ data, include: { categories: true } })
+    this.syncSearch(video)
+    return video
   }
 
   async update(id: string, dto: UpdateVideoDto) {
@@ -99,11 +103,24 @@ export class VideosService {
       data.categories = { set: dto.categoryIds.map((id) => ({ id })) }
     }
 
-    return this.prisma.video.update({ where: { id }, data, include: { categories: true } })
+    const video = await this.prisma.video.update({ where: { id }, data, include: { categories: true } })
+    this.syncSearch(video)
+    return video
   }
 
   async remove(id: string) {
     await this.findOne(id, { id: '', email: '', role: 'ADMIN' })
-    return this.prisma.video.delete({ where: { id } })
+    await this.prisma.video.delete({ where: { id } })
+    void this.search.deleteVideo(id)
+    return { deleted: true }
+  }
+
+  private syncSearch(video: { id: string; title: string; description: string | null; bvid: string }) {
+    void this.search.indexVideo({
+      id: video.id,
+      title: video.title,
+      description: video.description ?? '',
+      bvid: video.bvid,
+    })
   }
 }

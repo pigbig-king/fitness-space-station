@@ -12,8 +12,10 @@ import HomePage from './pages/HomePage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import NotificationsPage from './pages/NotificationsPage'
 import RegisterPage from './pages/RegisterPage'
 import ResearchPage from './pages/ResearchPage'
+import SearchPage from './pages/SearchPage'
 import TagsPage from './pages/TagsPage'
 import UserProfilePage from './pages/UserProfilePage'
 import VideoDetailPage from './pages/VideoDetailPage'
@@ -40,6 +42,15 @@ function App() {
         />
         <Route path="/articles/:id" element={<ArticleDetailPage />} />
         <Route path="/research" element={<ResearchPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/log" element={<LogPage />} />
         <Route
           path="/me/favorites"
