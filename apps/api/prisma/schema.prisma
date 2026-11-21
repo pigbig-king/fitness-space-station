@@ -31,12 +31,20 @@ enum EvidenceLevel {
   OTHER
 }
 
+enum BodyMetricType {
+  WEIGHT
+  BODY_FAT
+  CIRCUMFERENCE
+  RESTING_HEART_RATE
+}
+
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
   nickname      String?        @unique
   avatarUrl     String?
   bio           String?
+  height        Float?
   passwordHash  String
   role          Role           @default(USER)
   createdAt     DateTime       @default(now())
@@ -51,6 +59,8 @@ model User {
   notifications Notification[]
   workoutLogs   WorkoutLog[]
   plans         Plan[]
+  bodyMetrics   BodyMetric[]
+  achievements  UserAchievement[]
 }
 
 model Category {
@@ -220,4 +230,39 @@ model Report {
   article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
   commentId String?
   createdAt DateTime @default(now())
+}
+
+model BodyMetric {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      BodyMetricType
+  part      String?
+  value     Float
+  unit      String
+  date      String
+  note      String?
+  createdAt DateTime       @default(now())
+
+  @@index([userId, type, date])
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  name        String
+  description String
+  icon        String?
+  unlocks     UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
 }
