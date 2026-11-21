@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, uploadImage } from '@/lib/api'
 
 type PublicProfile = {
   id: string
@@ -20,6 +21,9 @@ export default function UserProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { user, token } = useAuth()
   const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const query = useQuery({
     queryKey: ['user', id],
@@ -40,6 +44,23 @@ export default function UserProfilePage() {
       void queryClient.invalidateQueries({ queryKey: ['my-following'] })
     },
   })
+
+  async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !token) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      const url = await uploadImage(file, token)
+      await apiFetch('/users/me', { method: 'PATCH', token, body: { avatarUrl: url } })
+      await queryClient.invalidateQueries({ queryKey: ['user', id] })
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setUploading(false)
+    }
+  }
 
   if (query.isLoading) {
     return <p className="p-8 text-center text-muted-foreground">加载中…</p>
@@ -85,7 +106,7 @@ export default function UserProfilePage() {
       {profile.bio && <p className="mt-4 whitespace-pre-wrap text-muted-foreground">{profile.bio}</p>}
 
       {isSelf && (
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <Link to="/me/favorites">
             <Button size="sm" variant="outline">
               我的收藏
@@ -96,8 +117,24 @@ export default function UserProfilePage() {
               发表文章
             </Button>
           </Link>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {uploading ? '上传中…' : '更换头像'}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => void handleAvatarChange(e)}
+          />
         </div>
       )}
+      {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
 
       <p className="mt-8 text-sm text-muted-foreground">TA 的文章列表（后续版本展示）</p>
     </main>
