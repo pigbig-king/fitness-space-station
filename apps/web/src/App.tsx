@@ -13,6 +13,7 @@ import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import NotificationsPage from './pages/NotificationsPage'
+import PlanPage from './pages/PlanPage'
 import RegisterPage from './pages/RegisterPage'
 import ResearchPage from './pages/ResearchPage'
 import SearchPage from './pages/SearchPage'
@@ -52,6 +53,14 @@ function App() {
           }
         />
         <Route path="/log" element={<LogPage />} />
+        <Route
+          path="/plan"
+          element={
+            <ProtectedRoute>
+              <PlanPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/me/favorites"
           element={
