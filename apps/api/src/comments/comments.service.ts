@@ -8,7 +8,7 @@ export class CommentsService {
   findAll() {
     return this.prisma.comment.findMany({
       include: {
-        user: { select: { id: true, email: true } },
+        user: { select: { id: true, email: true, nickname: true, avatarUrl: true } },
         video: { select: { id: true, title: true } },
         article: { select: { id: true, title: true } },
       },

@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common'
+import { CurrentUser, CurrentUserOptional, type AuthUser } from '../auth/current-user.decorator'
+import { OptionalAuthGuard } from '../auth/optional-auth.guard'
 import { Public } from '../auth/public.decorator'
-import { Roles } from '../auth/roles.decorator'
 import { ArticlesService } from './articles.service'
 import { CreateArticleDto } from './dto/create-article.dto'
 import { UpdateArticleDto } from './dto/update-article.dto'
@@ -10,31 +11,31 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Public()
+  @UseGuards(OptionalAuthGuard)
   @Get()
-  findAll() {
-    return this.articlesService.findAll()
+  findAll(@CurrentUserOptional() viewer: AuthUser | null) {
+    return this.articlesService.findAll(viewer)
   }
 
   @Public()
+  @UseGuards(OptionalAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.articlesService.findOne(id)
+  findOne(@Param('id') id: string, @CurrentUserOptional() viewer: AuthUser | null) {
+    return this.articlesService.findOne(id, viewer)
   }
 
   @Post()
-  create(@Body() dto: CreateArticleDto) {
-    return this.articlesService.create(dto)
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateArticleDto) {
+    return this.articlesService.create(dto, user)
   }
 
-  @Roles('ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateArticleDto) {
-    return this.articlesService.update(id, dto)
+  update(@Param('id') id: string, @CurrentUser() user: AuthUser, @Body() dto: UpdateArticleDto) {
+    return this.articlesService.update(id, dto, user)
   }
 
-  @Roles('ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.articlesService.remove(id)
+  remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.articlesService.remove(id, user)
   }
 }

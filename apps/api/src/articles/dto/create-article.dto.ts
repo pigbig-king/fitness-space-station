@@ -8,6 +8,14 @@ export class CreateArticleDto {
   content: string
 
   @IsOptional()
+  @IsString()
+  summary?: string
+
+  @IsOptional()
+  @IsString()
+  coverUrl?: string
+
+  @IsOptional()
   @IsIn(['DRAFT', 'PUBLISHED'])
   status?: 'DRAFT' | 'PUBLISHED'
 

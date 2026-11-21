@@ -19,11 +19,13 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10)
+    const nickname = dto.email.split('@')[0]
+
     const user = await this.prisma.user.create({
-      data: { email: dto.email, passwordHash },
+      data: { email: dto.email, passwordHash, nickname },
     })
 
-    return { id: user.id, email: user.email, role: user.role }
+    return { id: user.id, email: user.email, nickname: user.nickname, role: user.role }
   }
 
   async login(dto: LoginDto) {

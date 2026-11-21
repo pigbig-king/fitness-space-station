@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import type { AuthUser } from '../auth/current-user.decorator'
 import { PrismaService } from '../prisma/prisma.service'
 import { BilibiliService } from './bilibili.service'
 import { CreateVideoDto } from './dto/create-video.dto'
@@ -12,11 +13,17 @@ export class VideosService {
     private readonly bilibili: BilibiliService,
   ) {}
 
-  async findAll(query: { q?: string; category?: string; page?: number; pageSize?: number }) {
+  async findAll(
+    query: { q?: string; category?: string; page?: number; pageSize?: number },
+    viewer: AuthUser | null,
+  ) {
     const page = Math.max(1, query.page ?? 1)
     const pageSize = Math.min(50, Math.max(1, query.pageSize ?? 20))
 
     const where: Prisma.VideoWhereInput = {}
+    if (viewer?.role !== 'ADMIN') {
+      where.status = 'PUBLISHED'
+    }
     if (query.category) where.categories = { some: { id: query.category } }
     if (query.q) where.title = { contains: query.q }
 
@@ -34,7 +41,7 @@ export class VideosService {
     return { total, page, pageSize, items }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, viewer: AuthUser | null) {
     const video = await this.prisma.video.findUnique({
       where: { id },
       include: {
@@ -44,6 +51,9 @@ export class VideosService {
       },
     })
     if (!video) throw new NotFoundException('视频不存在')
+    if (video.status !== 'PUBLISHED' && viewer?.role !== 'ADMIN') {
+      throw new NotFoundException('视频不存在')
+    }
     return video
   }
 
@@ -68,7 +78,7 @@ export class VideosService {
   }
 
   async update(id: string, dto: UpdateVideoDto) {
-    await this.findOne(id)
+    await this.findOne(id, { id: '', email: '', role: 'ADMIN' })
 
     const data: Prisma.VideoUpdateInput = {}
     if (dto.title !== undefined) data.title = dto.title
@@ -84,7 +94,7 @@ export class VideosService {
   }
 
   async remove(id: string) {
-    await this.findOne(id)
+    await this.findOne(id, { id: '', email: '', role: 'ADMIN' })
     return this.prisma.video.delete({ where: { id } })
   }
 }

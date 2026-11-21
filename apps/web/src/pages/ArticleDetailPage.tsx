@@ -21,6 +21,7 @@ type Article = {
   content: string
   categories: { id: string; name: string }[]
   references: Reference[]
+  author: { id: string; nickname: string | null }
   _count: { favorites: number; likes: number; comments: number }
 }
 
@@ -50,6 +51,7 @@ export default function ArticleDetailPage() {
 
       <h1 className="mb-2 text-2xl font-semibold">{article.title}</h1>
       <div className="mb-5 text-sm text-muted-foreground">
+        {article.author?.nickname ? `作者：${article.author.nickname} · ` : ''}
         {article.categories.length > 0 ? article.categories.map((c) => c.name).join(' / ') : '未分类'}
       </div>
 

@@ -8,7 +8,7 @@ import { apiFetch } from '@/lib/api'
 type Kind = 'video' | 'article'
 type MyItem = { id: string; videoId: string | null; articleId: string | null }
 type ToggleResult = { count: number }
-type Comment = { id: string; content: string; user: { email: string } }
+type Comment = { id: string; content: string; user: { email: string; nickname: string | null } }
 
 export function EngagementPanel({
   kind,
@@ -166,7 +166,7 @@ export function EngagementPanel({
         <ul className="space-y-2">
           {commentsQuery.data?.map((c) => (
             <li key={c.id} className="rounded-lg border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">{c.user.email}</div>
+              <div className="text-xs text-muted-foreground">{c.user.nickname ?? c.user.email}</div>
               <div className="mt-1 whitespace-pre-wrap">{c.content}</div>
             </li>
           ))}
