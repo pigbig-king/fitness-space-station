@@ -15,6 +15,7 @@ import { LikesModule } from './likes/likes.module'
 import { LlmModule } from './llm/llm.module'
 import { ModerationModule } from './moderation/moderation.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { PlansModule } from './plans/plans.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
@@ -24,6 +25,7 @@ import { TagsModule } from './tags/tags.module'
 import { UploadsModule } from './uploads/uploads.module'
 import { UsersModule } from './users/users.module'
 import { VideosModule } from './videos/videos.module'
+import { WorkoutLogsModule } from './workout-logs/workout-logs.module'
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { VideosModule } from './videos/videos.module'
     SearchModule,
     NotificationsModule,
     ModerationModule,
+    WorkoutLogsModule,
+    PlansModule,
   ],
   controllers: [AppController],
   providers: [

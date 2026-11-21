@@ -27,7 +27,7 @@ export default function HomePage() {
         </Link>
       </div>
 
-      <h2 className="mb-4 mt-10 text-lg font-semibold">更多支柱</h2>
+      <h2 className="mb-4 mt-10 text-lg font-semibold">训练助手</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Link to="/log" className="no-underline">
           <Card className="h-full transition-shadow hover:shadow-md">
@@ -37,12 +37,14 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle>计划自适应</CardTitle>
-            <CardDescription>敬请期待</CardDescription>
-          </CardHeader>
-        </Card>
+        <Link to="/plan" className="no-underline">
+          <Card className="h-full transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle>计划自适应</CardTitle>
+              <CardDescription>规则生成个性化周计划</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Card className="h-full">
           <CardHeader>
             <CardTitle>动作检查</CardTitle>
