@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router'
 import AdminGuard from './components/admin-guard'
 import Layout from './components/layout'
 import ProtectedRoute from './components/protected-route'
+import AchievementsPage from './pages/AchievementsPage'
+import BodyMetricsPage from './pages/BodyMetricsPage'
 import AdminPage from './pages/admin/AdminPage'
 import ArticleEditPage from './pages/admin/ArticleEditPage'
 import ArticleCreatePage from './pages/ArticleCreatePage'
@@ -66,6 +68,22 @@ function App() {
           element={
             <ProtectedRoute>
               <FavoritesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/me/body"
+          element={
+            <ProtectedRoute>
+              <BodyMetricsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/me/achievements"
+          element={
+            <ProtectedRoute>
+              <AchievementsPage />
             </ProtectedRoute>
           }
         />

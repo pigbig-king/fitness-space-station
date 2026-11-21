@@ -3,10 +3,12 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { AchievementsModule } from './achievements/achievements.module'
 import { ArticlesModule } from './articles/articles.module'
 import { AuthModule } from './auth/auth.module'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { RolesGuard } from './auth/roles.guard'
+import { BodyMetricsModule } from './body-metrics/body-metrics.module'
 import { CategoriesModule } from './categories/categories.module'
 import { CommentsModule } from './comments/comments.module'
 import { FavoritesModule } from './favorites/favorites.module'
@@ -21,6 +23,7 @@ import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
 import { ReportsModule } from './reports/reports.module'
 import { SearchModule } from './search/search.module'
+import { StatsModule } from './stats/stats.module'
 import { TagsModule } from './tags/tags.module'
 import { UploadsModule } from './uploads/uploads.module'
 import { UsersModule } from './users/users.module'
@@ -51,6 +54,9 @@ import { WorkoutLogsModule } from './workout-logs/workout-logs.module'
     ModerationModule,
     WorkoutLogsModule,
     PlansModule,
+    BodyMetricsModule,
+    AchievementsModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [

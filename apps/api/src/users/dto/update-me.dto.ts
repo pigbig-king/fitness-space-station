@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator'
+import { IsNumber, IsOptional, IsString, MaxLength } from 'class-validator'
 
 export class UpdateMeDto {
   @IsOptional()
@@ -14,4 +14,8 @@ export class UpdateMeDto {
   @IsString()
   @MaxLength(200)
   bio?: string
+
+  @IsOptional()
+  @IsNumber()
+  height?: number
 }

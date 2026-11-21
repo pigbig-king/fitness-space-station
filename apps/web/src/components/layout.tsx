@@ -128,6 +128,20 @@ export default function Layout() {
                     >
                       我的收藏
                     </Link>
+                    <Link
+                      to="/me/body"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block rounded px-2 py-1.5 text-sm hover:bg-muted"
+                    >
+                      身体数据
+                    </Link>
+                    <Link
+                      to="/me/achievements"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block rounded px-2 py-1.5 text-sm hover:bg-muted"
+                    >
+                      我的成就
+                    </Link>
                     {user.role === 'ADMIN' && (
                       <Link
                         to="/admin"

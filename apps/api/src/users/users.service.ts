@@ -34,6 +34,7 @@ export class UsersService {
         nickname: dto.nickname !== undefined ? dto.nickname : undefined,
         avatarUrl: dto.avatarUrl !== undefined ? dto.avatarUrl : undefined,
         bio: dto.bio !== undefined ? dto.bio : undefined,
+        height: dto.height !== undefined ? dto.height : undefined,
       },
     })
     return {
@@ -42,6 +43,7 @@ export class UsersService {
       nickname: updated.nickname,
       avatarUrl: updated.avatarUrl,
       bio: updated.bio,
+      height: updated.height,
       role: updated.role,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
