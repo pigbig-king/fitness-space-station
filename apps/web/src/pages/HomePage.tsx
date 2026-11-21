@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="mb-2 text-3xl font-bold">健身空间站 Fitness Space Station</h1>
-      <p className="mb-8 text-muted-foreground">训练记录 · 计划自适应 · 社区 · 动作检查</p>
+      <p className="mb-8 text-muted-foreground">训练记录 · 计划自适应 · 社区</p>
 
       <h2 className="mb-4 text-lg font-semibold">核心功能</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -28,7 +28,7 @@ export default function HomePage() {
       </div>
 
       <h2 className="mb-4 mt-10 text-lg font-semibold">训练助手</h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Link to="/log" className="no-underline">
           <Card className="h-full transition-shadow hover:shadow-md">
             <CardHeader>
@@ -45,12 +45,6 @@ export default function HomePage() {
             </CardHeader>
           </Card>
         </Link>
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle>动作检查</CardTitle>
-            <CardDescription>敬请期待</CardDescription>
-          </CardHeader>
-        </Card>
       </div>
     </main>
   )
