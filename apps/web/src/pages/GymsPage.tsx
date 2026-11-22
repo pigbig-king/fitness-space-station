@@ -58,7 +58,7 @@ export default function GymsPage() {
       <div className="flex flex-col gap-3 lg:h-[70vh] lg:flex-row">
         <div className="h-64 shrink-0 overflow-hidden rounded-lg border lg:h-auto lg:min-w-0 lg:flex-1">
           <GymMap
-            gyms={gyms.map((g) => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng, price: g.price, environment: g.environment, equipment: g.equipment }))}
+            gyms={gyms.map((g) => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng, district: g.district, price: g.price, environment: g.environment, equipment: g.equipment }))}
             onSelect={(id, section) => navigate(`/gyms/${id}${section ? `#${section}` : ''}`)}
           />
         </div>

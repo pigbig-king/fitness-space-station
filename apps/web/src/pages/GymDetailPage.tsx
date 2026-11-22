@@ -98,7 +98,7 @@ export default function GymDetailPage() {
       </div>
 
       <div className="mb-4 h-56 overflow-hidden rounded-lg border">
-        <GymMap gyms={[{ id: gym.id, name: gym.name, lat: gym.lat, lng: gym.lng, price: gym.price, environment: gym.environment, equipment: gym.equipment }]} />
+        <GymMap gyms={[{ id: gym.id, name: gym.name, lat: gym.lat, lng: gym.lng, district: gym.district, price: gym.price, environment: gym.environment, equipment: gym.equipment }]} />
       </div>
 
       <section id="price" className="mb-4">
