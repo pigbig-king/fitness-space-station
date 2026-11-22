@@ -6,12 +6,16 @@ import AchievementsPage from './pages/AchievementsPage'
 import BodyMetricsPage from './pages/BodyMetricsPage'
 import AdminPage from './pages/admin/AdminPage'
 import ArticleEditPage from './pages/admin/ArticleEditPage'
+import GymManager from './pages/admin/GymManager'
 import ArticleCreatePage from './pages/ArticleCreatePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
 import DiscoverPage from './pages/DiscoverPage'
 import FavoritesPage from './pages/FavoritesPage'
 import FeedPage from './pages/FeedPage'
+import GymDetailPage from './pages/GymDetailPage'
+import GymNewPage from './pages/GymNewPage'
+import GymsPage from './pages/GymsPage'
 import HomePage from './pages/HomePage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
@@ -125,6 +129,24 @@ function App() {
         />
         <Route path="/tags/:name" element={<TagsPage />} />
         <Route path="/users/:id" element={<UserProfilePage />} />
+        <Route path="/gyms" element={<GymsPage />} />
+        <Route
+          path="/gyms/new"
+          element={
+            <ProtectedRoute>
+              <GymNewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/gyms/:id" element={<GymDetailPage />} />
+        <Route
+          path="/admin/gyms"
+          element={
+            <AdminGuard>
+              <GymManager />
+            </AdminGuard>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

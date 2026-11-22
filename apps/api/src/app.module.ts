@@ -14,6 +14,7 @@ import { CommentsModule } from './comments/comments.module'
 import { FavoritesModule } from './favorites/favorites.module'
 import { FollowModule } from './follow/follow.module'
 import { FeedModule } from './feed/feed.module'
+import { GymsModule } from './gyms/gyms.module'
 import { FavoriteListsModule } from './favorite-lists/favorite-lists.module'
 import { LikesModule } from './likes/likes.module'
 import { LlmModule } from './llm/llm.module'
@@ -65,6 +66,7 @@ import { WorkoutLogsModule } from './workout-logs/workout-logs.module'
     RecommendModule,
     FeedModule,
     MessagesModule,
+    GymsModule,
   ],
   controllers: [AppController],
   providers: [

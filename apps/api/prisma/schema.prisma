@@ -38,6 +38,12 @@ enum BodyMetricType {
   RESTING_HEART_RATE
 }
 
+enum GymStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -65,6 +71,9 @@ model User {
   conversation1 Conversation[] @relation("conversation1")
   conversation2 Conversation[] @relation("conversation2")
   messages      Message[]
+  gyms          Gym[]
+  gymCheckIns   GymCheckIn[]
+  gymReviews    GymReview[]
 }
 
 model Category {
@@ -305,4 +314,63 @@ model Message {
   content        String
   read           Boolean      @default(false)
   createdAt      DateTime     @default(now())
+}
+
+model Gym {
+  id            String         @id @default(cuid())
+  name          String
+  address       String
+  city          String
+  district      String?
+  lat           Float
+  lng           Float
+  description   String?
+  price         String?
+  hours         String?
+  phone         String?
+  images        String[]
+  status        GymStatus      @default(PENDING)
+  submittedById String
+  submittedBy   User           @relation(fields: [submittedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  equipment     GymEquipment[]
+  checkIns      GymCheckIn[]
+  reviews       GymReview[]
+
+  @@index([city, district])
+  @@index([status])
+}
+
+model GymEquipment {
+  id       String @id @default(cuid())
+  gymId    String
+  gym      Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  name     String
+  quantity Int    @default(1)
+}
+
+model GymCheckIn {
+  id        String   @id @default(cuid())
+  gymId     String
+  gym       Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      String
+  createdAt DateTime @default(now())
+
+  @@unique([gymId, userId, date])
+}
+
+model GymReview {
+  id        String   @id @default(cuid())
+  gymId     String
+  gym       Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([gymId, userId])
 }

@@ -16,6 +16,7 @@ const LINKS = [
   { to: '/feed', label: '动态', end: false },
   { to: '/log', label: '记录', end: false },
   { to: '/videos', label: '视频', end: false },
+  { to: '/gyms', label: '地图', end: false },
 ]
 
 export default function Layout() {
