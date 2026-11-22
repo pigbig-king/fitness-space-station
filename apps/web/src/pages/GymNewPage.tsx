@@ -1,0 +1,139 @@
+import { useState, type ChangeEvent } from 'react'
+import { useNavigate } from 'react-router'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import GymMap from '@/components/GymMap'
+import { useAuth } from '@/contexts/auth-context'
+import { apiFetch, uploadImage } from '@/lib/api'
+
+type EquipmentRow = { name: string; quantity: number }
+
+export default function GymNewPage() {
+  const { token } = useAuth()
+  const navigate = useNavigate()
+  const [form, setForm] = useState({ name: '', address: '', city: '', district: '', price: '', hours: '', phone: '', description: '' })
+  const [latLng, setLatLng] = useState<{ lng: number; lat: number } | null>(null)
+  const [equipment, setEquipment] = useState<EquipmentRow[]>([{ name: '', quantity: 1 }])
+  const [images, setImages] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  function setField(key: keyof typeof form, value: string) {
+    setForm((p) => ({ ...p, [key]: value }))
+  }
+
+  async function handleImage(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !token) return
+    try {
+      const url = await uploadImage(file, token)
+      setImages((prev) => [...prev, url])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  async function handleSubmit() {
+    if (!latLng || !form.name.trim() || !form.address.trim() || !form.city.trim()) {
+      setError('请填写名称/地址/城市，并在地图上点击选点')
+      return
+    }
+    const equip = equipment.filter((e) => e.name.trim())
+    setSubmitting(true)
+    setError(null)
+    try {
+      await apiFetch('/gyms', {
+        method: 'POST',
+        token,
+        body: {
+          ...form,
+          lat: latLng.lat,
+          lng: latLng.lng,
+          images,
+          equipment: equip.map((e) => ({ name: e.name.trim(), quantity: e.quantity })),
+        },
+      })
+      navigate('/gyms')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-4xl p-4">
+      <h1 className="mb-3 text-2xl font-semibold">提交健身房</h1>
+      <p className="mb-3 text-sm text-muted-foreground">在地图上点击选点，填写信息后提交（需管理员审核后公开）。</p>
+
+      <div className="mb-4 h-64 overflow-hidden rounded-lg border">
+        <GymMap clickToPick onPick={(lng, lat) => setLatLng({ lng, lat })} />
+      </div>
+      <div className="mb-3 text-sm">
+        已选坐标：
+        {latLng ? ` ${latLng.lng.toFixed(5)}, ${latLng.lat.toFixed(5)}` : ' 未选点（点击地图选择）'}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Input value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="名称" />
+        <Input value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="地址" />
+        <Input value={form.city} onChange={(e) => setField('city', e.target.value)} placeholder="城市" />
+        <Input value={form.district} onChange={(e) => setField('district', e.target.value)} placeholder="区域（可选）" />
+        <Input value={form.price} onChange={(e) => setField('price', e.target.value)} placeholder="价格（可选）" />
+        <Input value={form.hours} onChange={(e) => setField('hours', e.target.value)} placeholder="营业时间（可选）" />
+        <Input value={form.phone} onChange={(e) => setField('phone', e.target.value)} placeholder="电话（可选）" />
+        <Input value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="简介（可选）" />
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="font-medium">器械（名称 + 数量）</span>
+          <Button size="sm" variant="outline" onClick={() => setEquipment((p) => [...p, { name: '', quantity: 1 }])}>
+            + 添加器械
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {equipment.map((row, i) => (
+            <div key={i} className="flex gap-2">
+              <Input
+                value={row.name}
+                onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))}
+                placeholder="器械名称，如 深蹲架"
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={row.quantity}
+                onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, quantity: Math.max(1, Number(e.target.value)) } : r)))}
+                className="w-24"
+              />
+              <Button size="sm" variant="ghost" onClick={() => setEquipment((p) => p.filter((_, j) => j !== i))}>
+                删
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="mb-1 block text-sm">图片（可选，可多张）</label>
+        <input type="file" accept="image/*" onChange={(e) => void handleImage(e)} />
+        {images.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {images.map((url) => (
+              <img key={url} src={url} alt="" className="h-16 w-16 rounded object-cover" />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+      <Button className="mt-4" onClick={() => void handleSubmit()} disabled={submitting}>
+        {submitting ? '提交中…' : '提交'}
+      </Button>
+    </main>
+  )
+}

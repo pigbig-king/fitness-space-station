@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 
-export type NotificationType = 'comment' | 'reply' | 'like' | 'follow'
+export type NotificationType = 'comment' | 'reply' | 'like' | 'follow' | 'gym_approved' | 'gym_rejected'
 
 @Injectable()
 export class NotificationsService {

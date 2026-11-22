@@ -21,9 +21,14 @@ export default function AdminPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <Link to="/" className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground">
-        ← 返回首页
-      </Link>
+      <div className="mb-3 flex items-center justify-between">
+        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+          ← 返回首页
+        </Link>
+        <Link to="/admin/gyms" className="text-sm text-primary hover:underline">
+          健身房审核 →
+        </Link>
+      </div>
       <h1 className="mb-4 text-2xl font-semibold">管理后台</h1>
 
       <div className="mb-6 flex gap-4 border-b">
