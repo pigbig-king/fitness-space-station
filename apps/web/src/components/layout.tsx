@@ -12,6 +12,7 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
 const LINKS = [
   { to: '/', label: '首页', end: true },
   { to: '/articles', label: '社区', end: false },
+  { to: '/discover', label: '发现', end: false },
   { to: '/log', label: '记录', end: false },
   { to: '/videos', label: '视频', end: false },
 ]

@@ -13,6 +13,7 @@ import { CategoriesModule } from './categories/categories.module'
 import { CommentsModule } from './comments/comments.module'
 import { FavoritesModule } from './favorites/favorites.module'
 import { FollowModule } from './follow/follow.module'
+import { FavoriteListsModule } from './favorite-lists/favorite-lists.module'
 import { LikesModule } from './likes/likes.module'
 import { LlmModule } from './llm/llm.module'
 import { ModerationModule } from './moderation/moderation.module'
@@ -21,6 +22,7 @@ import { PlansModule } from './plans/plans.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { PubmedModule } from './pubmed/pubmed.module'
 import { ReferencesModule } from './references/references.module'
+import { RecommendModule } from './recommend/recommend.module'
 import { ReportsModule } from './reports/reports.module'
 import { SearchModule } from './search/search.module'
 import { StatsModule } from './stats/stats.module'
@@ -57,6 +59,8 @@ import { WorkoutLogsModule } from './workout-logs/workout-logs.module'
     BodyMetricsModule,
     AchievementsModule,
     StatsModule,
+    FavoriteListsModule,
+    RecommendModule,
   ],
   controllers: [AppController],
   providers: [

@@ -9,6 +9,7 @@ import ArticleEditPage from './pages/admin/ArticleEditPage'
 import ArticleCreatePage from './pages/ArticleCreatePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
+import DiscoverPage from './pages/DiscoverPage'
 import FavoritesPage from './pages/FavoritesPage'
 import HomePage from './pages/HomePage'
 import LogPage from './pages/LogPage'
@@ -45,6 +46,7 @@ function App() {
         />
         <Route path="/articles/:id" element={<ArticleDetailPage />} />
         <Route path="/research" element={<ResearchPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route
           path="/notifications"

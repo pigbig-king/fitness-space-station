@@ -61,6 +61,7 @@ model User {
   plans         Plan[]
   bodyMetrics   BodyMetric[]
   achievements  UserAchievement[]
+  favoriteLists FavoriteList[]
 }
 
 model Category {
@@ -179,16 +180,29 @@ model Plan {
 }
 
 model Favorite {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   videoId   String?
-  video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  video     Video?        @relation(fields: [videoId], references: [id], onDelete: Cascade)
   articleId String?
-  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  article   Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  listId    String?
+  list      FavoriteList? @relation(fields: [listId], references: [id], onDelete: SetNull)
+  createdAt DateTime      @default(now())
   @@unique([userId, videoId])
   @@unique([userId, articleId])
+}
+
+model FavoriteList {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  favorites Favorite[]
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, name])
 }
 
 model Comment {
