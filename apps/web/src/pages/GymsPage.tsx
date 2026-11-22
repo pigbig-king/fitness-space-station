@@ -55,14 +55,14 @@ export default function GymsPage() {
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="搜索名称" className="w-40" />
       </div>
 
-      <div className="flex h-[70vh] gap-3">
-        <div className="min-w-0 flex-1 overflow-hidden rounded-lg border">
+      <div className="flex flex-col gap-3 lg:h-[70vh] lg:flex-row">
+        <div className="h-64 shrink-0 overflow-hidden rounded-lg border lg:h-auto lg:min-w-0 lg:flex-1">
           <GymMap
             gyms={gyms.map((g) => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng, price: g.price, environment: g.environment, equipment: g.equipment }))}
             onSelect={(id, section) => navigate(`/gyms/${id}${section ? `#${section}` : ''}`)}
           />
         </div>
-        <ul className="w-72 shrink-0 space-y-2 overflow-y-auto">
+        <ul className="max-h-80 space-y-2 overflow-y-auto lg:max-h-none lg:w-72 lg:shrink-0">
           {gyms.map((g) => (
             <li key={g.id}>
               <Link to={`/gyms/${g.id}`} className="block rounded-lg border p-3 no-underline hover:shadow-sm">
