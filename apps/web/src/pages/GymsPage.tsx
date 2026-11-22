@@ -13,7 +13,9 @@ type Gym = {
   district: string | null
   lat: number
   lng: number
-  equipment: { name: string; quantity: number }[]
+  price: string | null
+  environment: string | null
+  equipment: { name: string; quantity: number; status: string }[]
   _count: { checkIns: number; reviews: number }
 }
 type GymList = { total: number; items: Gym[] }
@@ -56,8 +58,8 @@ export default function GymsPage() {
       <div className="flex h-[70vh] gap-3">
         <div className="min-w-0 flex-1 overflow-hidden rounded-lg border">
           <GymMap
-            gyms={gyms.map((g) => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng, equipment: g.equipment }))}
-            onSelect={(id) => navigate(`/gyms/${id}`)}
+            gyms={gyms.map((g) => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng, price: g.price, environment: g.environment, equipment: g.equipment }))}
+            onSelect={(id, section) => navigate(`/gyms/${id}${section ? `#${section}` : ''}`)}
           />
         </div>
         <ul className="w-72 shrink-0 space-y-2 overflow-y-auto">

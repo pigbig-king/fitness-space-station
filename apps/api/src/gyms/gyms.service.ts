@@ -5,6 +5,7 @@ import { NotificationsService } from '../notifications/notifications.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { todayISO } from '../stats/streak.utils'
 import { CreateGymDto } from './dto/create-gym.dto'
+import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 
@@ -71,7 +72,7 @@ export class GymsService {
     const gym = await this.prisma.gym.findUnique({
       where: { id },
       include: {
-        equipment: true,
+        equipment: { include: { reviews: { include: { user: { select: { id: true, nickname: true, avatarUrl: true } } } } } },
         reviews: { include: { user: { select: { id: true, nickname: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
         _count: { select: { checkIns: true, reviews: true } },
       },
@@ -120,7 +121,7 @@ export class GymsService {
         images: dto.images ?? [],
         status: 'PENDING',
         submittedById: userId,
-        equipment: { create: dto.equipment.map((e) => ({ name: e.name, quantity: e.quantity })) },
+        equipment: { create: dto.equipment.map((e) => ({ name: e.name, professionalName: e.professionalName, serialLabel: e.serialLabel, quantity: e.quantity, status: e.status ?? 'NORMAL' })) },
       },
       include: { equipment: true },
     })
@@ -198,6 +199,16 @@ export class GymsService {
       void this.notifications.notify(gym.submittedById, type, null, 'gym', gymId)
     }
     return updated
+  }
+
+  async reviewEquipment(userId: string, gymId: string, equipmentId: string, dto: CreateEquipmentReviewDto) {
+    const equipment = await this.prisma.gymEquipment.findUnique({ where: { id: equipmentId } })
+    if (!equipment || equipment.gymId !== gymId) throw new NotFoundException('器材不存在')
+    return this.prisma.gymEquipmentReview.upsert({
+      where: { equipmentId_userId: { equipmentId, userId } },
+      update: { rating: dto.rating, comment: dto.comment },
+      create: { equipmentId, userId, rating: dto.rating, comment: dto.comment },
+    })
   }
 
   async remove(gymId: string) {

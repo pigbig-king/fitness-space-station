@@ -4,6 +4,7 @@ import { OptionalAuthGuard } from '../auth/optional-auth.guard'
 import { Public } from '../auth/public.decorator'
 import { Roles } from '../auth/roles.decorator'
 import { CreateGymDto } from './dto/create-gym.dto'
+import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 import { GymsService } from './gyms.service'
@@ -78,6 +79,16 @@ export class GymsController {
   @Post(':id/review')
   review(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: CreateReviewDto) {
     return this.gymsService.review(user.id, id, dto)
+  }
+
+  @Post(':gymId/equipment/:equipmentId/review')
+  reviewEquipment(
+    @CurrentUser() user: AuthUser,
+    @Param('gymId') gymId: string,
+    @Param('equipmentId') equipmentId: string,
+    @Body() dto: CreateEquipmentReviewDto,
+  ) {
+    return this.gymsService.reviewEquipment(user.id, gymId, equipmentId, dto)
   }
 
   @Roles('ADMIN')

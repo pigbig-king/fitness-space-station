@@ -6,14 +6,14 @@ import GymMap from '@/components/GymMap'
 import { useAuth } from '@/contexts/auth-context'
 import { apiFetch, uploadImage } from '@/lib/api'
 
-type EquipmentRow = { name: string; quantity: number }
+type EquipmentRow = { name: string; professionalName: string; serialLabel: string; quantity: number; status: string }
 
 export default function GymNewPage() {
   const { token } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', address: '', city: '', district: '', price: '', hours: '', phone: '', description: '' })
+  const [form, setForm] = useState({ name: '', address: '', city: '', district: '', price: '', hours: '', phone: '', description: '', environment: '' })
   const [latLng, setLatLng] = useState<{ lng: number; lat: number } | null>(null)
-  const [equipment, setEquipment] = useState<EquipmentRow[]>([{ name: '', quantity: 1 }])
+  const [equipment, setEquipment] = useState<EquipmentRow[]>([{ name: '', professionalName: '', serialLabel: '', quantity: 1, status: 'NORMAL' }])
   const [images, setImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -51,7 +51,7 @@ export default function GymNewPage() {
           lat: latLng.lat,
           lng: latLng.lng,
           images,
-          equipment: equip.map((e) => ({ name: e.name.trim(), quantity: e.quantity })),
+          equipment: equip.map((e) => ({ name: e.name.trim(), professionalName: e.professionalName.trim() || undefined, serialLabel: e.serialLabel.trim() || undefined, quantity: e.quantity, status: e.status })),
         },
       })
       navigate('/gyms')
@@ -84,35 +84,58 @@ export default function GymNewPage() {
         <Input value={form.hours} onChange={(e) => setField('hours', e.target.value)} placeholder="营业时间（可选）" />
         <Input value={form.phone} onChange={(e) => setField('phone', e.target.value)} placeholder="电话（可选）" />
         <Input value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="简介（可选）" />
+        <Input value={form.environment} onChange={(e) => setField('environment', e.target.value)} placeholder="环境（可选），如 通风好、器械齐全" />
       </div>
 
       <div className="mt-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="font-medium">器械（名称 + 数量）</span>
-          <Button size="sm" variant="outline" onClick={() => setEquipment((p) => [...p, { name: '', quantity: 1 }])}>
+          <Button size="sm" variant="outline" onClick={() => setEquipment((p) => [...p, { name: '', professionalName: '', serialLabel: '', quantity: 1, status: 'NORMAL' }])}>
             + 添加器械
           </Button>
         </div>
         <div className="space-y-2">
           {equipment.map((row, i) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="space-y-1 rounded-lg border p-2">
+              <div className="flex flex-wrap gap-2">
+                <Input
+                  value={row.name}
+                  onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))}
+                  placeholder="器械名称，如 深蹲架"
+                  className="min-w-32 flex-1"
+                />
+                <Input
+                  value={row.professionalName}
+                  onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, professionalName: e.target.value } : r)))}
+                  placeholder="专业名称（可选）"
+                  className="min-w-32 flex-1"
+                />
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={row.quantity}
+                  onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, quantity: Math.max(1, Number(e.target.value)) } : r)))}
+                  className="w-20"
+                />
+                <select
+                  value={row.status}
+                  onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, status: e.target.value } : r)))}
+                  className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                >
+                  <option value="NORMAL">正常</option>
+                  <option value="DAMAGED">损坏</option>
+                  <option value="MAINTENANCE">维修中</option>
+                </select>
+                <Button size="sm" variant="ghost" onClick={() => setEquipment((p) => p.filter((_, j) => j !== i))}>
+                  删
+                </Button>
+              </div>
               <Input
-                value={row.name}
-                onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))}
-                placeholder="器械名称，如 深蹲架"
-                className="flex-1"
+                value={row.serialLabel}
+                onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, serialLabel: e.target.value } : r)))}
+                placeholder="序号标签（可选），如 1~5号"
               />
-              <Input
-                type="number"
-                min="1"
-                step="1"
-                value={row.quantity}
-                onChange={(e) => setEquipment((p) => p.map((r, j) => (j === i ? { ...r, quantity: Math.max(1, Number(e.target.value)) } : r)))}
-                className="w-24"
-              />
-              <Button size="sm" variant="ghost" onClick={() => setEquipment((p) => p.filter((_, j) => j !== i))}>
-                删
-              </Button>
             </div>
           ))}
         </div>

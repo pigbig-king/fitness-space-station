@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer'
 import {
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -15,9 +16,21 @@ export class GymEquipmentDto {
   @IsNotEmpty()
   name: string
 
+  @IsOptional()
+  @IsString()
+  professionalName?: string
+
+  @IsOptional()
+  @IsString()
+  serialLabel?: string
+
   @IsInt()
   @Min(1)
   quantity: number
+
+  @IsOptional()
+  @IsIn(['NORMAL', 'DAMAGED', 'MAINTENANCE'])
+  status?: string
 }
 
 export class CreateGymDto {
