@@ -54,7 +54,7 @@ export default function GymNewPage() {
           equipment: equip.map((e) => ({ name: e.name.trim(), professionalName: e.professionalName.trim() || undefined, serialLabel: e.serialLabel.trim() || undefined, quantity: e.quantity, status: e.status })),
         },
       })
-      navigate('/gyms')
+      navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {

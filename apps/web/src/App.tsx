@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import AdminGuard from './components/admin-guard'
 import Layout from './components/layout'
 import ProtectedRoute from './components/protected-route'
@@ -15,7 +15,6 @@ import FavoritesPage from './pages/FavoritesPage'
 import FeedPage from './pages/FeedPage'
 import GymDetailPage from './pages/GymDetailPage'
 import GymNewPage from './pages/GymNewPage'
-import GymsPage from './pages/GymsPage'
 import HomePage from './pages/HomePage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
@@ -129,7 +128,7 @@ function App() {
         />
         <Route path="/tags/:name" element={<TagsPage />} />
         <Route path="/users/:id" element={<UserProfilePage />} />
-        <Route path="/gyms" element={<GymsPage />} />
+        <Route path="/gyms" element={<Navigate to="/" replace />} />
         <Route
           path="/gyms/new"
           element={
