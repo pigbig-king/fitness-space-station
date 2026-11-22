@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import GymMap from '@/components/GymMap'
 import { useAuth } from '@/contexts/auth-context'
 import { apiFetch } from '@/lib/api'
 
-type Review = { id: string; rating: number; comment: string | null; createdAt: string; user: { id: string; nickname: string | null; avatarUrl: string | null } }
+type User = { id: string; nickname: string | null; avatarUrl: string | null }
+type EquipReview = { id: string; rating: number; comment: string | null; user: User }
+type Equipment = { id: string; name: string; professionalName: string | null; serialLabel: string | null; quantity: number; status: string; reviews: EquipReview[] }
+type Review = { id: string; rating: number; comment: string | null; createdAt: string; user: User }
 type GymDetail = {
   id: string
   name: string
@@ -16,11 +19,12 @@ type GymDetail = {
   lat: number
   lng: number
   description: string | null
+  environment: string | null
   price: string | null
   hours: string | null
   phone: string | null
   images: string[]
-  equipment: { name: string; quantity: number }[]
+  equipment: Equipment[]
   reviews: Review[]
   _count: { checkIns: number; reviews: number }
   avgRating: number | null
@@ -28,18 +32,33 @@ type GymDetail = {
   myReview: { rating: number; comment: string | null } | null
 }
 
+const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
+  NORMAL: { text: '正常', cls: 'bg-green-100 text-green-700' },
+  DAMAGED: { text: '损坏', cls: 'bg-red-100 text-red-700' },
+  MAINTENANCE: { text: '维修中', cls: 'bg-yellow-100 text-yellow-700' },
+}
+
 export default function GymDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { token } = useAuth()
   const queryClient = useQueryClient()
+  const location = useLocation()
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
+  const [reviewFor, setReviewFor] = useState<string | null>(null)
+  const [eqRating, setEqRating] = useState(5)
+  const [eqComment, setEqComment] = useState('')
 
   const query = useQuery({
     queryKey: ['gym', id],
     queryFn: () => apiFetch<GymDetail>(`/gyms/${id}`, { token }),
     enabled: Boolean(id),
   })
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '')
+    if (hash) document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' })
+  }, [location.hash, query.isSuccess])
 
   const checkInMutation = useMutation({
     mutationFn: () => apiFetch(`/gyms/${id}/check-in`, { method: 'POST', token }),
@@ -49,6 +68,15 @@ export default function GymDetailPage() {
     mutationFn: () => apiFetch(`/gyms/${id}/review`, { method: 'POST', token, body: { rating, comment: comment.trim() || undefined } }),
     onSuccess: () => {
       setComment('')
+      void queryClient.invalidateQueries({ queryKey: ['gym', id] })
+    },
+  })
+  const eqReviewMutation = useMutation({
+    mutationFn: (equipmentId: string) =>
+      apiFetch(`/gyms/${id}/equipment/${equipmentId}/review`, { method: 'POST', token, body: { rating: eqRating, comment: eqComment.trim() || undefined } }),
+    onSuccess: () => {
+      setReviewFor(null)
+      setEqComment('')
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
   })
@@ -68,35 +96,72 @@ export default function GymDetailPage() {
         {gym.city}
         {gym.district ? ` · ${gym.district}` : ''} · {gym.address}
       </div>
-      <div className="mb-3 flex flex-wrap gap-3 text-sm">
-        {gym.price && <span>价格：{gym.price}</span>}
-        {gym.hours && <span>营业：{gym.hours}</span>}
-        {gym.phone && <span>电话：{gym.phone}</span>}
-        {gym.avgRating != null && <span>评分：{gym.avgRating}（{gym._count.reviews} 条）</span>}
-        <span>打卡：{gym._count.checkIns}</span>
-      </div>
 
       <div className="mb-4 h-56 overflow-hidden rounded-lg border">
-        <GymMap gyms={[{ id: gym.id, name: gym.name, lat: gym.lat, lng: gym.lng, equipment: gym.equipment }]} />
+        <GymMap gyms={[{ id: gym.id, name: gym.name, lat: gym.lat, lng: gym.lng, price: gym.price, environment: gym.environment, equipment: gym.equipment }]} />
       </div>
 
-      <div className="mb-4">
+      <section id="price" className="mb-4">
+        <h2 className="mb-2 font-medium">价格</h2>
+        <p className="text-muted-foreground">{gym.price || '暂无'}</p>
+      </section>
+
+      <section id="environment" className="mb-4">
+        <h2 className="mb-2 font-medium">环境</h2>
+        <p className="text-muted-foreground">{gym.environment || '暂无'}</p>
+      </section>
+
+      <section id="equipment" className="mb-6">
         <h2 className="mb-2 font-medium">器械清单</h2>
         {gym.equipment.length === 0 ? (
           <p className="text-sm text-muted-foreground">暂无器械信息</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {gym.equipment.map((e, i) => (
-              <span key={i} className="rounded bg-muted px-2 py-1 text-sm">
-                {e.name} × {e.quantity}
-              </span>
-            ))}
-          </div>
+          <ul className="space-y-2">
+            {gym.equipment.map((e) => {
+              const st = STATUS_LABEL[e.status] ?? STATUS_LABEL.NORMAL
+              return (
+                <li key={e.id} className="rounded-lg border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{e.name}</span>
+                    {e.professionalName && <span className="text-xs text-muted-foreground">（{e.professionalName}）</span>}
+                    {e.serialLabel && <span className="text-xs text-muted-foreground">标签：{e.serialLabel}</span>}
+                    <span className="text-sm">× {e.quantity}</span>
+                    <span className={`rounded px-2 py-0.5 text-xs ${st.cls}`}>{st.text}</span>
+                    <button type="button" className="ml-auto text-xs text-primary hover:underline" onClick={() => setReviewFor(reviewFor === e.id ? null : e.id)}>
+                      {e.reviews.length > 0 ? `评价(${e.reviews.length})` : '评价'}
+                    </button>
+                  </div>
+
+                  {reviewFor === e.id && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <select value={eqRating} onChange={(ev) => setEqRating(Number(ev.target.value))} className="h-8 rounded-md border border-input bg-transparent px-2 text-sm">
+                        {[5, 4, 3, 2, 1].map((r) => (
+                          <option key={r} value={r}>{r} 星</option>
+                        ))}
+                      </select>
+                      <input value={eqComment} onChange={(ev) => setEqComment(ev.target.value)} placeholder="器材评价（可选）" className="h-8 flex-1 rounded-md border border-input bg-transparent px-2 text-sm" />
+                      <Button size="sm" disabled={!token} onClick={() => eqReviewMutation.mutate(e.id)}>提交</Button>
+                    </div>
+                  )}
+
+                  {e.reviews.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-sm">
+                      {e.reviews.map((r) => (
+                        <li key={r.id} className="text-muted-foreground">
+                          {r.user.nickname ?? '匿名'} ★{r.rating}
+                          {r.comment ? `：${r.comment}` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
         )}
-      </div>
+      </section>
 
       {gym.description && <p className="mb-4 whitespace-pre-wrap text-muted-foreground">{gym.description}</p>}
-
       {gym.images.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-2">
           {gym.images.map((url) => (
@@ -105,35 +170,23 @@ export default function GymDetailPage() {
         </div>
       )}
 
-      <div className="mb-6 flex gap-2">
-        <Button
-          variant={gym.myCheckIn ? 'secondary' : 'default'}
-          onClick={() => (token ? checkInMutation.mutate() : undefined)}
-          disabled={!token}
-        >
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <Button variant={gym.myCheckIn ? 'secondary' : 'default'} onClick={() => (token ? checkInMutation.mutate() : undefined)} disabled={!token}>
           {gym.myCheckIn ? '已打卡（点击取消）' : '打卡'}
         </Button>
+        {gym.avgRating != null && <span className="text-sm text-muted-foreground">评分 {gym.avgRating}（{gym._count.reviews} 条）· 打卡 {gym._count.checkIns}</span>}
       </div>
 
       <div className="mb-6 rounded-lg border p-4">
-        <h2 className="mb-2 font-medium">评分评价</h2>
+        <h2 className="mb-2 font-medium">健身房评分</h2>
         <div className="flex flex-wrap items-center gap-2">
           <select value={rating} onChange={(e) => setRating(Number(e.target.value))} className="h-9 rounded-md border border-input bg-transparent px-2 text-sm">
             {[5, 4, 3, 2, 1].map((r) => (
-              <option key={r} value={r}>
-                {r} 星
-              </option>
+              <option key={r} value={r}>{r} 星</option>
             ))}
           </select>
-          <input
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="写下你的评价（可选）"
-            className="h-9 flex-1 rounded-md border border-input bg-transparent px-2 text-sm"
-          />
-          <Button size="sm" disabled={!token || reviewMutation.isPending} onClick={() => reviewMutation.mutate()}>
-            提交评价
-          </Button>
+          <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="价格/环境/整体评价" className="h-9 flex-1 rounded-md border border-input bg-transparent px-2 text-sm" />
+          <Button size="sm" disabled={!token || reviewMutation.isPending} onClick={() => reviewMutation.mutate()}>提交评价</Button>
         </div>
       </div>
 

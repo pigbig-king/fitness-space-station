@@ -7,7 +7,9 @@ export type GymMarker = {
   name: string
   lat: number
   lng: number
-  equipment: { name: string; quantity: number }[]
+  price?: string | null
+  environment?: string | null
+  equipment: { name: string; quantity: number; status: string }[]
 }
 
 const OSM_STYLE: StyleSpecification = {
@@ -30,7 +32,7 @@ export default function GymMap({
   onPick,
 }: {
   gyms?: GymMarker[]
-  onSelect?: (id: string) => void
+  onSelect?: (id: string, section?: string) => void
   clickToPick?: boolean
   onPick?: (lng: number, lat: number) => void
 }) {
@@ -65,15 +67,29 @@ export default function GymMap({
 
     const bounds = new LngLatBounds()
     for (const g of gyms) {
-      const equip = g.equipment.length ? g.equipment.map((e) => `${e.name}×${e.quantity}`).join(' · ') : '无器械信息'
-      const popup = new Popup({ offset: 28 }).setHTML(
-        `<div style="min-width:140px"><strong>${g.name}</strong><div style="margin:4px 0;color:#555">${equip}</div>${
-          onSelect ? `<button data-id="${g.id}" style="color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">查看详情 →</button>` : ''
-        }</div>`,
-      )
+      const totalCount = g.equipment.reduce((s, e) => s + e.quantity, 0)
+      const damagedCount = g.equipment.filter((e) => e.status !== 'NORMAL').length
+      const equipSummary = `共 ${g.equipment.length} 种 ${totalCount} 件${damagedCount ? ` · 损坏 ${damagedCount}` : ''}`
+      const price = g.price || '暂无'
+      const environment = g.environment || '暂无'
+
+      const html = `<div style="min-width:160px">
+        <strong>${g.name}</strong>
+        <div style="margin:6px 0;display:flex;flex-direction:column;gap:3px">
+          <button data-id="${g.id}" data-section="equipment" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">器械：${equipSummary}</button>
+          <button data-id="${g.id}" data-section="price" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">价格：${price}</button>
+          <button data-id="${g.id}" data-section="environment" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">环境：${environment}</button>
+        </div>
+        <button data-id="${g.id}" style="color:#333;cursor:pointer;background:none;border:none;padding:0;text-decoration:underline">查看详情 →</button>
+      </div>`
+
+      const popup = new Popup({ offset: 28 }).setHTML(html)
       popup.getElement()?.addEventListener('click', (e: MouseEvent) => {
-        const id = (e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id')
-        if (id) onSelect?.(id)
+        const el = (e.target as HTMLElement).closest('[data-id]')
+        if (!el) return
+        const id = el.getAttribute('data-id')
+        const section = el.getAttribute('data-section') || undefined
+        if (id) onSelect?.(id, section)
       })
       const marker = new Marker().setLngLat([g.lng, g.lat]).setPopup(popup).addTo(map)
       markersRef.current.push(marker)
