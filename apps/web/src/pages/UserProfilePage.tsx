@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState, type ChangeEvent } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
 import { apiFetch, uploadImage } from '@/lib/api'
@@ -21,6 +21,7 @@ export default function UserProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { user, token } = useAuth()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -43,6 +44,11 @@ export default function UserProfilePage() {
       void queryClient.invalidateQueries({ queryKey: ['user', id] })
       void queryClient.invalidateQueries({ queryKey: ['my-following'] })
     },
+  })
+
+  const messageMutation = useMutation({
+    mutationFn: () => apiFetch<{ id: string }>('/conversations', { method: 'POST', token, body: { userId: id } }),
+    onSuccess: (conv) => navigate(`/messages?conversation=${conv.id}`),
   })
 
   async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
@@ -92,14 +98,24 @@ export default function UserProfilePage() {
           </div>
         </div>
         {!isSelf && (
-          <Button
-            type="button"
-            variant={following ? 'secondary' : 'default'}
-            onClick={() => (token ? followMutation.mutate() : undefined)}
-            disabled={!token || followMutation.isPending}
-          >
-            {following ? '已关注' : '关注'}
-          </Button>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              type="button"
+              variant={following ? 'secondary' : 'default'}
+              onClick={() => (token ? followMutation.mutate() : undefined)}
+              disabled={!token || followMutation.isPending}
+            >
+              {following ? '已关注' : '关注'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => (token ? messageMutation.mutate() : navigate('/login'))}
+              disabled={!token || messageMutation.isPending}
+            >
+              发私信
+            </Button>
+          </div>
         )}
       </div>
 

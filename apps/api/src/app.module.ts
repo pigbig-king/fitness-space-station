@@ -13,10 +13,12 @@ import { CategoriesModule } from './categories/categories.module'
 import { CommentsModule } from './comments/comments.module'
 import { FavoritesModule } from './favorites/favorites.module'
 import { FollowModule } from './follow/follow.module'
+import { FeedModule } from './feed/feed.module'
 import { FavoriteListsModule } from './favorite-lists/favorite-lists.module'
 import { LikesModule } from './likes/likes.module'
 import { LlmModule } from './llm/llm.module'
 import { ModerationModule } from './moderation/moderation.module'
+import { MessagesModule } from './messages/messages.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PlansModule } from './plans/plans.module'
 import { PrismaModule } from './prisma/prisma.module'
@@ -61,6 +63,8 @@ import { WorkoutLogsModule } from './workout-logs/workout-logs.module'
     StatsModule,
     FavoriteListsModule,
     RecommendModule,
+    FeedModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [

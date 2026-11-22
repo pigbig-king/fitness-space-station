@@ -62,6 +62,9 @@ model User {
   bodyMetrics   BodyMetric[]
   achievements  UserAchievement[]
   favoriteLists FavoriteList[]
+  conversation1 Conversation[] @relation("conversation1")
+  conversation2 Conversation[] @relation("conversation2")
+  messages      Message[]
 }
 
 model Category {
@@ -279,4 +282,27 @@ model UserAchievement {
   unlockedAt    DateTime    @default(now())
 
   @@unique([userId, achievementId])
+}
+
+model Conversation {
+  id             String    @id @default(cuid())
+  participant1Id String
+  participant1   User      @relation("conversation1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2Id String
+  participant2   User      @relation("conversation2", fields: [participant2Id], references: [id], onDelete: Cascade)
+  messages       Message[]
+  createdAt      DateTime  @default(now())
+
+  @@unique([participant1Id, participant2Id])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 }
