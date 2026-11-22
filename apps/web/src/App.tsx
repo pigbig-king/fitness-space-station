@@ -11,9 +11,11 @@ import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
 import DiscoverPage from './pages/DiscoverPage'
 import FavoritesPage from './pages/FavoritesPage'
+import FeedPage from './pages/FeedPage'
 import HomePage from './pages/HomePage'
 import LogPage from './pages/LogPage'
 import LoginPage from './pages/LoginPage'
+import MessagesPage from './pages/MessagesPage'
 import NotFoundPage from './pages/NotFoundPage'
 import NotificationsPage from './pages/NotificationsPage'
 import PlanPage from './pages/PlanPage'
@@ -62,6 +64,22 @@ function App() {
           element={
             <ProtectedRoute>
               <PlanPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/feed"
+          element={
+            <ProtectedRoute>
+              <FeedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <MessagesPage />
             </ProtectedRoute>
           }
         />

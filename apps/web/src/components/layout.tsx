@@ -13,6 +13,7 @@ const LINKS = [
   { to: '/', label: '首页', end: true },
   { to: '/articles', label: '社区', end: false },
   { to: '/discover', label: '发现', end: false },
+  { to: '/feed', label: '动态', end: false },
   { to: '/log', label: '记录', end: false },
   { to: '/videos', label: '视频', end: false },
 ]
@@ -31,6 +32,13 @@ export default function Layout() {
       return data.unreadCount
     },
     enabled: Boolean(token),
+  })
+
+  const msgUnreadQuery = useQuery({
+    queryKey: ['messages-unread'],
+    queryFn: () => apiFetch<number>('/conversations/unread-count', { token }),
+    enabled: Boolean(token),
+    refetchInterval: 15000,
   })
 
   function handleLogout() {
@@ -77,6 +85,24 @@ export default function Layout() {
                 搜索
               </button>
             </div>
+
+            {user && (
+              <button
+                type="button"
+                className="relative rounded-md p-1.5 hover:bg-muted"
+                onClick={() => navigate('/messages')}
+                aria-label="消息"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {(msgUnreadQuery.data ?? 0) > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] text-white">
+                    {msgUnreadQuery.data}
+                  </span>
+                )}
+              </button>
+            )}
 
             {user && (
               <button
