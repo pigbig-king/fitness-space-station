@@ -46,7 +46,7 @@ export default function MessagesPage() {
 
   return (
     <main className="mx-auto flex h-[calc(100vh-56px)] max-w-4xl p-3">
-      <aside className="w-60 shrink-0 overflow-y-auto border-r pr-2">
+      <aside className="w-40 shrink-0 overflow-y-auto border-r pr-2 sm:w-60">
         <h2 className="mb-2 px-2 font-medium">会话</h2>
         {conversationsQuery.data?.length === 0 && <p className="px-2 text-sm text-muted-foreground">暂无会话</p>}
         <ul className="space-y-1">
