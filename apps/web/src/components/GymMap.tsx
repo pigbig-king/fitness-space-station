@@ -31,9 +31,9 @@ const BASE_STYLE: StyleSpecification = {
 
 const PIN_COLOR = '#ef4444'
 
-// 红色地图钉 SVG（尖端在底部）
+// 经典地图钉 SVG（泪滴带孔，尖端在底部；evenodd 挖出中心圆孔）
 function pinSvg(): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 11.25 15 27 15 27s15-15.75 15-27C30 6.7 23.3 0 15 0z" fill="${PIN_COLOR}" stroke="#ffffff" stroke-width="1.5"/><circle cx="15" cy="15" r="5.2" fill="#ffffff"/></svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42"><path fill-rule="evenodd" fill="${PIN_COLOR}" stroke="#ffffff" stroke-width="1.5" d="M15 1C7.3 1 1 7.3 1 15c0 10.5 14 25 14 25s14-14.5 14-25C29 7.3 22.7 1 15 1z M15 10.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>`
 }
 
 function loadPinImage(map: Map): Promise<void> {
@@ -146,7 +146,7 @@ export default function GymMap({
                 source: 'gyms',
                 filter: ['has', 'point_count'],
                 paint: {
-                  'circle-color': '#ef4444',
+                  'circle-color': '#7c3aed',
                   'circle-radius': ['step', ['get', 'point_count'], 18, 10, 26, 30, 34],
                   'circle-opacity': 0.85,
                   'circle-stroke-width': 2,
