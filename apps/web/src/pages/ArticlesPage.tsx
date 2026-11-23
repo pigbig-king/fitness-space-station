@@ -86,7 +86,7 @@ export default function ArticlesPage() {
               <div className="font-medium leading-snug">{a.title}</div>
               {a.summary && <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.summary}</div>}
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                {a.author?.nickname && <Link to={`/users/${a.author.id}`} className="hover:underline">{a.author.nickname}</Link>}
+                {a.author?.nickname && <span className="hover:underline">{a.author.nickname}</span>}
                 <span>
                   {a.categories.length > 0 ? a.categories.map((c) => c.name).join(' / ') : '未分类'}
                 </span>
@@ -97,13 +97,9 @@ export default function ArticlesPage() {
               {a.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {a.tags.map((t) => (
-                    <Link
-                      key={t.id}
-                      to={`/tags/${encodeURIComponent(t.name)}`}
-                      className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent"
-                    >
+                    <span key={t.id} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                       #{t.name}
-                    </Link>
+                    </span>
                   ))}
                 </div>
               )}

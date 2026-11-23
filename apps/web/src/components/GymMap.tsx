@@ -13,18 +13,17 @@ export type GymMarker = {
   equipment: { name: string; quantity: number; status: string }[]
 }
 
-const OSM_STYLE: StyleSpecification = {
+const BASE_STYLE: StyleSpecification = {
   version: 8,
-  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
   sources: {
-    osm: {
+    base: {
       type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tiles: ['https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
+      attribution: '© 高德地图',
     },
   },
-  layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+  layers: [{ id: 'base', type: 'raster', source: 'base' }],
 }
 
 const DISTRICT_COLORS: Record<string, string> = {
@@ -106,7 +105,7 @@ export default function GymMap({
     try {
       map = new Map({
         container: containerRef.current,
-        style: OSM_STYLE,
+        style: BASE_STYLE,
         center: [116.4, 39.9],
         zoom: 11,
       })
@@ -136,18 +135,6 @@ export default function GymMap({
                   'circle-radius': ['step', ['get', 'point_count'], 18, 10, 26, 30, 34],
                   'circle-opacity': 0.85,
                 },
-              })
-              m.addLayer({
-                id: 'gym-cluster-count',
-                type: 'symbol',
-                source: 'gyms',
-                filter: ['has', 'point_count'],
-                layout: {
-                  'text-field': '{point_count_abbreviated}',
-                  'text-font': ['Noto Sans Regular'],
-                  'text-size': 13,
-                },
-                paint: { 'text-color': '#ffffff' },
               })
               m.addLayer({
                 id: 'gym-unclustered',
