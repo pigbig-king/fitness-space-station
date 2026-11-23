@@ -103,7 +103,7 @@ export default function GymNewPage() {
                   }}
                 >
                   {s.name}
-                  {s.district ? `（${s.city}·${s.district}）` : `（${s.city}）`}
+                  {s.district ? `（${s.city}）` : ''}
                 </button>
               </li>
             ))}
