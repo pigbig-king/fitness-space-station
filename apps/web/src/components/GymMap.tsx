@@ -138,28 +138,11 @@ export default function GymMap({
               m.addSource('gyms', {
                 type: 'geojson',
                 data: { type: 'FeatureCollection', features: [] },
-                cluster: true,
-                clusterRadius: 50,
-                clusterMaxZoom: 14,
-              })
-              m.addLayer({
-                id: 'gym-clusters',
-                type: 'circle',
-                source: 'gyms',
-                filter: ['has', 'point_count'],
-                paint: {
-                  'circle-color': '#7c3aed',
-                  'circle-radius': ['step', ['get', 'point_count'], 18, 10, 26, 30, 34],
-                  'circle-opacity': 0.85,
-                  'circle-stroke-width': 2,
-                  'circle-stroke-color': '#ffffff',
-                },
               })
               m.addLayer({
                 id: 'gym-unclustered',
                 type: 'symbol',
                 source: 'gyms',
-                filter: ['!', ['has', 'point_count']],
                 layout: {
                   'icon-image': 'gym-pin',
                   'icon-size': 0.7,
@@ -171,7 +154,6 @@ export default function GymMap({
                 id: 'gym-unclustered-label',
                 type: 'symbol',
                 source: 'gyms',
-                filter: ['!', ['has', 'point_count']],
                 layout: {
                   'text-field': ['get', 'name'],
                   'text-font': ['Noto Sans Regular'],
@@ -207,18 +189,6 @@ export default function GymMap({
             const id = el.getAttribute('data-id')
             const section = el.getAttribute('data-section') || undefined
             if (id) onSelect?.(id, section)
-          })
-        })
-
-        m.on('click', 'gym-clusters', (e) => {
-          const features = m.queryRenderedFeatures(e.point, { layers: ['gym-clusters'] })
-          if (!features.length) return
-          const feature = features[0]
-          const clusterId = feature.properties?.cluster_id as number
-          const source = m.getSource('gyms') as GeoJSONSource
-          source.getClusterExpansionZoom(clusterId).then((zoom) => {
-            const coords = (feature.geometry as { coordinates: [number, number] }).coordinates
-            m.easeTo({ center: coords, zoom })
           })
         })
 
