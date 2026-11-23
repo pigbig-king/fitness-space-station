@@ -90,11 +90,13 @@ export default function GymMap({
   onSelect,
   clickToPick,
   onPick,
+  focus,
 }: {
   gyms?: GymMarker[]
   onSelect?: (id: string, section?: string) => void
   clickToPick?: boolean
   onPick?: (lng: number, lat: number) => void
+  focus?: { lng: number; lat: number; zoom?: number } | null
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<Map | null>(null)
@@ -210,6 +212,12 @@ export default function GymMap({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gyms])
+
+  useEffect(() => {
+    if (focus && mapRef.current) {
+      mapRef.current.flyTo({ center: [focus.lng, focus.lat], zoom: focus.zoom ?? 13 })
+    }
+  }, [focus])
 
   if (failed) {
     return <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">地图加载失败，请刷新重试</div>

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { apiFetch, uploadImage } from '@/lib/api'
 
 type EquipmentRow = { name: string; professionalName: string; serialLabel: string; quantity: number; status: string }
+type GeoResult = { name: string; city: string; district?: string; lat: number; lng: number }
 
 export default function GymNewPage() {
   const { token } = useAuth()
@@ -17,6 +18,23 @@ export default function GymNewPage() {
   const [images, setImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [geoQ, setGeoQ] = useState('')
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([])
+  const [focus, setFocus] = useState<{ lng: number; lat: number; zoom?: number } | null>(null)
+
+  useEffect(() => {
+    const q = geoQ.trim()
+    if (!q) {
+      setSuggestions([])
+      return
+    }
+    const timer = setTimeout(() => {
+      apiFetch<GeoResult[]>(`/geo/search?q=${encodeURIComponent(q)}`)
+        .then(setSuggestions)
+        .catch(() => setSuggestions([]))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [geoQ])
 
   function setField(key: keyof typeof form, value: string) {
     setForm((p) => ({ ...p, [key]: value }))
@@ -67,8 +85,34 @@ export default function GymNewPage() {
       <h1 className="mb-3 text-2xl font-semibold">提交健身房</h1>
       <p className="mb-3 text-sm text-muted-foreground">在地图上点击选点，填写信息后提交（需管理员审核后公开）。</p>
 
+      <div className="relative mb-2">
+        <Input value={geoQ} onChange={(e) => setGeoQ(e.target.value)} placeholder="输入模糊地址搜索并跳转，如 合肥 / 蜀山区" />
+        {suggestions.length > 0 && (
+          <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-background shadow-md">
+            {suggestions.map((s, i) => (
+              <li key={i}>
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                  onClick={() => {
+                    setFocus({ lng: s.lng, lat: s.lat, zoom: 13 })
+                    setField('city', s.city)
+                    if (s.district) setField('district', s.district)
+                    setGeoQ(s.name)
+                    setSuggestions([])
+                  }}
+                >
+                  {s.name}
+                  {s.district ? `（${s.city}·${s.district}）` : `（${s.city}）`}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="mb-4 h-64 overflow-hidden rounded-lg border">
-        <GymMap clickToPick onPick={(lng, lat) => setLatLng({ lng, lat })} />
+        <GymMap clickToPick focus={focus} onPick={(lng, lat) => setLatLng({ lng, lat })} />
       </div>
       <div className="mb-3 text-sm">
         已选坐标：
