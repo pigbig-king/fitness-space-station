@@ -71,7 +71,7 @@ export default function HomePage() {
       </div>
 
       {/* 顶部搜索栏 */}
-      <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-center gap-2 rounded-lg border bg-background/95 p-2 shadow-md">
+      <div className="glass absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] flex-wrap items-center gap-2 rounded-lg border p-2 shadow-md">
         <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="城市，如 合肥" className="w-24" />
         <Input value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="区域" className="w-24" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="搜索健身房名称" className="w-36" />
@@ -84,7 +84,7 @@ export default function HomePage() {
       </div>
 
       {/* 图例 */}
-      <div className="absolute right-3 top-3 z-10 rounded-lg border bg-background/95 p-2 shadow-md">
+      <div className="glass absolute right-3 top-3 z-10 rounded-lg border p-2 shadow-md">
         <div className="mb-1 text-xs font-medium">分区图例</div>
         {LEGEND.map((d) => (
           <div key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -96,7 +96,7 @@ export default function HomePage() {
 
       {/* 左侧列表 */}
       {listOpen && (
-        <div className="absolute bottom-3 left-3 top-16 z-10 flex w-72 flex-col overflow-hidden rounded-lg border bg-background/95 shadow-md">
+        <div className="glass absolute bottom-3 left-3 top-16 z-10 flex w-72 flex-col overflow-hidden rounded-lg border shadow-md">
           <div className="border-b px-3 py-2 text-sm font-medium">健身房（{gyms.length}）</div>
           <ul className="flex-1 space-y-2 overflow-y-auto p-2">
             {gyms.map((g) => (

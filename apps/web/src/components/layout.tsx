@@ -5,8 +5,10 @@ import { useAuth } from '@/contexts/auth-context'
 import { apiFetch } from '@/lib/api'
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3 py-1.5 text-sm ${
-    isActive ? 'bg-indigo-50 font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground'
+  `rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+    isActive
+      ? 'bg-primary font-semibold text-primary-foreground shadow-sm'
+      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
   }`
 
 const LINKS = [
@@ -56,10 +58,19 @@ export default function Layout() {
 
   return (
     <>
-      <nav className="sticky top-0 z-20 border-b bg-background">
+      <nav className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2.5">
-          <Link to="/" className="mr-2 shrink-0 font-semibold">
-            健身空间站
+          <Link to="/" className="mr-2 flex shrink-0 items-center gap-1.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-500 text-white shadow-sm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.4 14.4 9.6 9.6" />
+                <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" />
+                <path d="m21.5 21.5-1.4-1.4" />
+                <path d="M3.9 3.9 2.5 2.5" />
+                <path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />
+              </svg>
+            </span>
+            <span className="text-gradient text-base font-bold">健身空间站</span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">

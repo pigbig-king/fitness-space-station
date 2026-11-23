@@ -6,24 +6,24 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.21 0.02 275);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.02 275);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.21 0.02 275);
+  --primary: oklch(0.511 0.262 276.966);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.962 0.018 272);
+  --secondary-foreground: oklch(0.373 0.194 265);
+  --muted: oklch(0.962 0.018 272);
+  --muted-foreground: oklch(0.554 0.046 270);
+  --accent: oklch(0.962 0.018 272);
+  --accent-foreground: oklch(0.373 0.194 265);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.928 0.008 275);
+  --input: oklch(0.928 0.008 275);
+  --ring: oklch(0.511 0.262 276.966);
 }
 
 @theme inline {
@@ -57,8 +57,33 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
+}
+
+/* 品牌渐变文字 */
+.text-gradient {
+  background: linear-gradient(135deg, oklch(0.541 0.281 293), oklch(0.511 0.262 277) 55%, oklch(0.62 0.19 190));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 玻璃拟态面板 */
+.glass {
+  background: color-mix(in oklab, var(--card) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* 卡片悬浮抬升 */
+.card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -12px oklch(0.511 0.262 277 / 0.25);
+  border-color: oklch(0.511 0.262 277 / 0.35);
 }
 
 .video-embed iframe {
