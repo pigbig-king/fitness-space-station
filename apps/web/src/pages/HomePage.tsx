@@ -21,15 +21,6 @@ type Gym = {
 }
 type GymList = { total: number; items: Gym[] }
 
-const LEGEND = [
-  { name: '蜀山区', color: '#e11d48' },
-  { name: '庐阳区', color: '#f59e0b' },
-  { name: '包河区', color: '#10b981' },
-  { name: '瑶海区', color: '#3b82f6' },
-  { name: '政务区', color: '#8b5cf6' },
-  { name: '其他', color: '#4f46e5' },
-]
-
 export default function HomePage() {
   const navigate = useNavigate()
   const [city, setCity] = useState('')
@@ -81,17 +72,6 @@ export default function HomePage() {
         <Button size="sm" onClick={() => navigate('/gyms/new')}>
           + 提交健身房
         </Button>
-      </div>
-
-      {/* 图例 */}
-      <div className="glass absolute right-3 top-3 z-10 rounded-lg border p-2 shadow-md">
-        <div className="mb-1 text-xs font-medium">分区图例</div>
-        {LEGEND.map((d) => (
-          <div key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
-            {d.name}
-          </div>
-        ))}
       </div>
 
       {/* 左侧列表 */}
