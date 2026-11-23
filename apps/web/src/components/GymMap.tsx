@@ -191,9 +191,9 @@ export default function GymMap({
                   'text-allow-overlap': false,
                 },
                 paint: {
-                  'text-color': '#1f2937',
-                  'text-halo-color': '#ffffff',
-                  'text-halo-width': 2,
+                  'text-color': '#ffffff',
+                  'text-halo-color': '#2563eb',
+                  'text-halo-width': 2.5,
                 },
               })
             }
