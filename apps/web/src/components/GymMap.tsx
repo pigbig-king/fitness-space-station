@@ -18,6 +18,7 @@ export type GymMarker = {
 
 const BASE_STYLE: StyleSpecification = {
   version: 8,
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: {
     base: {
       type: 'raster',
@@ -122,6 +123,7 @@ export default function GymMap({
         style: BASE_STYLE,
         center: [116.4, 39.9],
         zoom: 11,
+        localIdeographFontFamily: 'sans-serif',
       })
       mapRef.current = map
       const m = map
@@ -163,6 +165,25 @@ export default function GymMap({
                   'icon-size': 0.7,
                   'icon-allow-overlap': true,
                   'icon-anchor': 'bottom',
+                },
+              })
+              m.addLayer({
+                id: 'gym-unclustered-label',
+                type: 'symbol',
+                source: 'gyms',
+                filter: ['!', ['has', 'point_count']],
+                layout: {
+                  'text-field': ['get', 'name'],
+                  'text-font': ['Noto Sans Regular'],
+                  'text-anchor': 'left',
+                  'text-offset': [0.9, 1.1],
+                  'text-size': 13,
+                  'text-allow-overlap': false,
+                },
+                paint: {
+                  'text-color': '#1f2937',
+                  'text-halo-color': '#ffffff',
+                  'text-halo-width': 2,
                 },
               })
             }
