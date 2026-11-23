@@ -48,6 +48,12 @@ export default function GymDetailPage() {
   const [reviewFor, setReviewFor] = useState<string | null>(null)
   const [eqRating, setEqRating] = useState(5)
   const [eqComment, setEqComment] = useState('')
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [eqName, setEqName] = useState('')
+  const [eqProfessionalName, setEqProfessionalName] = useState('')
+  const [eqSerialLabel, setEqSerialLabel] = useState('')
+  const [eqQuantity, setEqQuantity] = useState(1)
+  const [eqStatus, setEqStatus] = useState('NORMAL')
 
   const query = useQuery({
     queryKey: ['gym', id],
@@ -79,6 +85,38 @@ export default function GymDetailPage() {
       setEqComment('')
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
+  })
+  const addEquipmentMutation = useMutation({
+    mutationFn: () =>
+      apiFetch(`/gyms/${id}/equipment`, {
+        method: 'POST',
+        token,
+        body: {
+          name: eqName.trim(),
+          professionalName: eqProfessionalName.trim() || undefined,
+          serialLabel: eqSerialLabel.trim() || undefined,
+          quantity: eqQuantity,
+          status: eqStatus,
+        },
+      }),
+    onSuccess: () => {
+      setEqName('')
+      setEqProfessionalName('')
+      setEqSerialLabel('')
+      setEqQuantity(1)
+      setEqStatus('NORMAL')
+      setShowAddForm(false)
+      void queryClient.invalidateQueries({ queryKey: ['gym', id] })
+    },
+  })
+  const updateEquipmentMutation = useMutation({
+    mutationFn: (args: { equipmentId: string; status: string }) =>
+      apiFetch(`/gyms/${id}/equipment/${args.equipmentId}`, { method: 'PATCH', token, body: { status: args.status } }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['gym', id] }),
+  })
+  const removeEquipmentMutation = useMutation({
+    mutationFn: (equipmentId: string) => apiFetch(`/gyms/${id}/equipment/${equipmentId}`, { method: 'DELETE', token }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['gym', id] }),
   })
 
   if (query.isLoading) return <p className="p-8 text-center text-muted-foreground">加载中…</p>
@@ -112,7 +150,34 @@ export default function GymDetailPage() {
       </section>
 
       <section id="equipment" className="mb-6">
-        <h2 className="mb-2 font-medium">器械清单</h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-medium">器械清单</h2>
+          {token && (
+            <Button size="sm" variant="outline" onClick={() => setShowAddForm((v) => !v)}>
+              {showAddForm ? '收起' : '+ 新增器械'}
+            </Button>
+          )}
+        </div>
+
+        {showAddForm && token && (
+          <div className="mb-3 rounded-lg border p-3">
+            <div className="flex flex-wrap gap-2">
+              <input value={eqName} onChange={(e) => setEqName(e.target.value)} placeholder="器械名称，如 深蹲架" className="h-9 min-w-32 flex-1 rounded-md border border-input bg-transparent px-2 text-sm" />
+              <input value={eqProfessionalName} onChange={(e) => setEqProfessionalName(e.target.value)} placeholder="专业名称（可选）" className="h-9 min-w-32 flex-1 rounded-md border border-input bg-transparent px-2 text-sm" />
+              <input value={eqSerialLabel} onChange={(e) => setEqSerialLabel(e.target.value)} placeholder="序号标签（可选）" className="h-9 min-w-32 flex-1 rounded-md border border-input bg-transparent px-2 text-sm" />
+              <input type="number" min="1" step="1" value={eqQuantity} onChange={(e) => setEqQuantity(Math.max(1, Number(e.target.value)))} className="h-9 w-20 rounded-md border border-input bg-transparent px-2 text-sm" />
+              <select value={eqStatus} onChange={(e) => setEqStatus(e.target.value)} className="h-9 rounded-md border border-input bg-transparent px-2 text-sm">
+                <option value="NORMAL">正常</option>
+                <option value="DAMAGED">损坏</option>
+                <option value="MAINTENANCE">维修中</option>
+              </select>
+              <Button size="sm" disabled={!eqName.trim() || addEquipmentMutation.isPending} onClick={() => addEquipmentMutation.mutate()}>
+                添加
+              </Button>
+            </div>
+          </div>
+        )}
+
         {gym.equipment.length === 0 ? (
           <p className="text-sm text-muted-foreground">暂无器械信息</p>
         ) : (
@@ -126,10 +191,23 @@ export default function GymDetailPage() {
                     {e.professionalName && <span className="text-xs text-muted-foreground">（{e.professionalName}）</span>}
                     {e.serialLabel && <span className="text-xs text-muted-foreground">标签：{e.serialLabel}</span>}
                     <span className="text-sm">× {e.quantity}</span>
-                    <span className={`rounded px-2 py-0.5 text-xs ${st.cls}`}>{st.text}</span>
+                    {token ? (
+                      <select value={e.status} onChange={(ev) => updateEquipmentMutation.mutate({ equipmentId: e.id, status: ev.target.value })} className="h-7 rounded-md border border-input bg-transparent px-1 text-xs">
+                        <option value="NORMAL">正常</option>
+                        <option value="DAMAGED">损坏</option>
+                        <option value="MAINTENANCE">维修中</option>
+                      </select>
+                    ) : (
+                      <span className={`rounded px-2 py-0.5 text-xs ${st.cls}`}>{st.text}</span>
+                    )}
                     <button type="button" className="ml-auto text-xs text-primary hover:underline" onClick={() => setReviewFor(reviewFor === e.id ? null : e.id)}>
                       {e.reviews.length > 0 ? `评价(${e.reviews.length})` : '评价'}
                     </button>
+                    {token && (
+                      <button type="button" className="text-xs text-destructive hover:underline" onClick={() => removeEquipmentMutation.mutate(e.id)}>
+                        删除
+                      </button>
+                    )}
                   </div>
 
                   {reviewFor === e.id && (

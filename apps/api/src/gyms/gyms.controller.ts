@@ -4,8 +4,10 @@ import { OptionalAuthGuard } from '../auth/optional-auth.guard'
 import { Public } from '../auth/public.decorator'
 import { Roles } from '../auth/roles.decorator'
 import { CreateGymDto } from './dto/create-gym.dto'
+import { CreateEquipmentDto } from './dto/create-equipment.dto'
 import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
+import { UpdateEquipmentDto } from './dto/update-equipment.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 import { GymsService } from './gyms.service'
 
@@ -89,6 +91,21 @@ export class GymsController {
     @Body() dto: CreateEquipmentReviewDto,
   ) {
     return this.gymsService.reviewEquipment(user.id, gymId, equipmentId, dto)
+  }
+
+  @Post(':id/equipment')
+  addEquipment(@Param('id') id: string, @Body() dto: CreateEquipmentDto) {
+    return this.gymsService.addEquipment(id, dto)
+  }
+
+  @Patch(':id/equipment/:equipmentId')
+  updateEquipment(@Param('id') id: string, @Param('equipmentId') equipmentId: string, @Body() dto: UpdateEquipmentDto) {
+    return this.gymsService.updateEquipment(id, equipmentId, dto)
+  }
+
+  @Delete(':id/equipment/:equipmentId')
+  removeEquipment(@Param('id') id: string, @Param('equipmentId') equipmentId: string) {
+    return this.gymsService.removeEquipment(id, equipmentId)
   }
 
   @Roles('ADMIN')

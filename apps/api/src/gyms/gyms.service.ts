@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import type { AuthUser } from '../auth/current-user.decorator'
 import { NotificationsService } from '../notifications/notifications.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { todayISO } from '../stats/streak.utils'
 import { CreateGymDto } from './dto/create-gym.dto'
+import { CreateEquipmentDto } from './dto/create-equipment.dto'
 import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
+import { UpdateEquipmentDto } from './dto/update-equipment.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 
 @Injectable()
@@ -209,6 +211,44 @@ export class GymsService {
       update: { rating: dto.rating, comment: dto.comment },
       create: { equipmentId, userId, rating: dto.rating, comment: dto.comment },
     })
+  }
+
+  async addEquipment(gymId: string, dto: CreateEquipmentDto) {
+    const gym = await this.prisma.gym.findUnique({ where: { id: gymId } })
+    if (!gym || gym.status !== 'APPROVED') throw new NotFoundException('健身房不存在')
+    if (!dto.name?.trim()) throw new BadRequestException('器械名称不能为空')
+    return this.prisma.gymEquipment.create({
+      data: {
+        gymId,
+        name: dto.name.trim(),
+        professionalName: dto.professionalName?.trim() || undefined,
+        serialLabel: dto.serialLabel?.trim() || undefined,
+        quantity: dto.quantity ?? 1,
+        status: dto.status ?? 'NORMAL',
+      },
+    })
+  }
+
+  async updateEquipment(gymId: string, equipmentId: string, dto: UpdateEquipmentDto) {
+    const equipment = await this.prisma.gymEquipment.findUnique({ where: { id: equipmentId } })
+    if (!equipment || equipment.gymId !== gymId) throw new NotFoundException('器材不存在')
+    return this.prisma.gymEquipment.update({
+      where: { id: equipmentId },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+        ...(dto.professionalName !== undefined ? { professionalName: dto.professionalName?.trim() || null } : {}),
+        ...(dto.serialLabel !== undefined ? { serialLabel: dto.serialLabel?.trim() || null } : {}),
+        ...(dto.quantity !== undefined ? { quantity: dto.quantity } : {}),
+        ...(dto.status !== undefined ? { status: dto.status } : {}),
+      },
+    })
+  }
+
+  async removeEquipment(gymId: string, equipmentId: string) {
+    const equipment = await this.prisma.gymEquipment.findUnique({ where: { id: equipmentId } })
+    if (!equipment || equipment.gymId !== gymId) throw new NotFoundException('器材不存在')
+    await this.prisma.gymEquipment.delete({ where: { id: equipmentId } })
+    return { deleted: true }
   }
 
   async remove(gymId: string) {
