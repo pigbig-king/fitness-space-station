@@ -90,6 +90,8 @@ export default function GymMap({
   const popupRef = useRef<Popup | null>(null)
   const markersRef = useRef<Marker[]>([])
   const onSelectRef = useRef(onSelect)
+  const prevSignatureRef = useRef('')
+  const fittedRef = useRef(false)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
@@ -126,6 +128,10 @@ export default function GymMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map || clickToPick || !gyms) return
+
+    const signature = gyms.map((g) => `${g.id}:${g.lng},${g.lat}`).join('|')
+    if (signature === prevSignatureRef.current) return
+    prevSignatureRef.current = signature
 
     for (const m of markersRef.current) m.remove()
     markersRef.current = []
@@ -180,9 +186,12 @@ export default function GymMap({
       markersRef.current.push(marker)
     }
 
-    const bounds = new LngLatBounds()
-    for (const g of gyms) bounds.extend([g.lng, g.lat])
-    if (gyms.length > 0) map.fitBounds(bounds, { padding: 60, maxZoom: 15 })
+    if (!fittedRef.current && gyms.length > 0) {
+      const bounds = new LngLatBounds()
+      for (const g of gyms) bounds.extend([g.lng, g.lat])
+      map.fitBounds(bounds, { padding: 60, maxZoom: 15 })
+      fittedRef.current = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gyms])
 
