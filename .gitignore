@@ -9,6 +9,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.production.example
+
+# 部署运行时数据（数据库/搜索索引/上传文件/前端产物）
+data/
 
 # logs
 logs
