@@ -2,7 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import GymMap from '@/components/GymMap'
+import GymMap from '@/components/LazyGymMap'
 import { useAuth } from '@/contexts/auth-context'
 import { apiFetch, uploadImage } from '@/lib/api'
 
@@ -18,6 +18,8 @@ export default function GymNewPage() {
   const [images, setImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Set<string>>(new Set())
   const [geoQ, setGeoQ] = useState('')
   const [suggestions, setSuggestions] = useState<GeoResult[]>([])
   const [focus, setFocus] = useState<{ lng: number; lat: number; zoom?: number } | null>(null)
@@ -38,6 +40,17 @@ export default function GymNewPage() {
 
   function setField(key: keyof typeof form, value: string) {
     setForm((p) => ({ ...p, [key]: value }))
+    if (fieldErrors.has(key)) {
+      setFieldErrors((prev) => {
+        const n = new Set(prev)
+        n.delete(key)
+        return n
+      })
+    }
+  }
+
+  function fieldCls(key: string) {
+    return fieldErrors.has(key) ? 'border-destructive ring-1 ring-destructive/30' : ''
   }
 
   async function handleImage(e: ChangeEvent<HTMLInputElement>) {
@@ -54,9 +67,16 @@ export default function GymNewPage() {
 
   async function handleSubmit() {
     if (!latLng || !form.name.trim() || !form.address.trim() || !form.city.trim()) {
-      setError('请填写名称/地址/城市，并在地图上点击选点')
+      const missing = new Set<string>()
+      if (!form.name.trim()) missing.add('name')
+      if (!form.address.trim()) missing.add('address')
+      if (!form.city.trim()) missing.add('city')
+      if (!latLng) missing.add('latLng')
+      setFieldErrors(missing)
+      setError('请填写必填项（名称 / 地址 / 城市），并在下方地图上点击选点')
       return
     }
+    setFieldErrors(new Set())
     const equip = equipment.filter((e) => e.name.trim())
     setSubmitting(true)
     setError(null)
@@ -72,7 +92,8 @@ export default function GymNewPage() {
           equipment: equip.map((e) => ({ name: e.name.trim(), professionalName: e.professionalName.trim() || undefined, serialLabel: e.serialLabel.trim() || undefined, quantity: e.quantity, status: e.status })),
         },
       })
-      navigate('/')
+      setSuccess(true)
+      window.setTimeout(() => navigate('/'), 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -112,17 +133,28 @@ export default function GymNewPage() {
       </div>
 
       <div className="mb-4 h-64 overflow-hidden rounded-lg border">
-        <GymMap clickToPick focus={focus} onPick={(lng, lat) => setLatLng({ lng, lat })} />
+        <GymMap
+          clickToPick
+          focus={focus}
+          onPick={(lng, lat) => {
+            setLatLng({ lng, lat })
+            setFieldErrors((prev) => {
+              const n = new Set(prev)
+              n.delete('latLng')
+              return n
+            })
+          }}
+        />
       </div>
-      <div className="mb-3 text-sm">
+      <div className={`mb-3 text-sm ${fieldErrors.has('latLng') ? 'font-medium text-destructive' : ''}`}>
         已选坐标：
         {latLng ? ` ${latLng.lng.toFixed(5)}, ${latLng.lat.toFixed(5)}` : ' 未选点（点击地图选择）'}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Input value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="名称" />
-        <Input value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="地址" />
-        <Input value={form.city} onChange={(e) => setField('city', e.target.value)} placeholder="城市" />
+        <Input value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="名称 *" className={fieldCls('name')} />
+        <Input value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="地址 *" className={fieldCls('address')} />
+        <Input value={form.city} onChange={(e) => setField('city', e.target.value)} placeholder="城市 *" className={fieldCls('city')} />
         <Input value={form.district} onChange={(e) => setField('district', e.target.value)} placeholder="区域（可选）" />
         <Input value={form.price} onChange={(e) => setField('price', e.target.value)} placeholder="价格（可选）" />
         <Input value={form.hours} onChange={(e) => setField('hours', e.target.value)} placeholder="营业时间（可选）" />
@@ -198,8 +230,8 @@ export default function GymNewPage() {
       </div>
 
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
-      <Button className="mt-4" onClick={() => void handleSubmit()} disabled={submitting}>
-        {submitting ? '提交中…' : '提交'}
+      <Button className="mt-4" onClick={() => void handleSubmit()} disabled={submitting || success}>
+        {submitting ? '提交中…' : success ? '已提交，等待审核 ✓' : '提交'}
       </Button>
     </main>
   )

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import GymMap from '@/components/GymMap'
+import GymMap from '@/components/LazyGymMap'
 import { apiFetch } from '@/lib/api'
 
 type Gym = {
@@ -26,7 +26,7 @@ export default function HomePage() {
   const [city, setCity] = useState('')
   const [district, setDistrict] = useState('')
   const [q, setQ] = useState('')
-  const [listOpen, setListOpen] = useState(true)
+  const [listOpen, setListOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true))
   const [focus, setFocus] = useState<{ lng: number; lat: number; zoom?: number } | null>(null)
   const [locating, setLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)

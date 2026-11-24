@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { Button } from '@/components/ui/button'
-import GymMap from '@/components/GymMap'
+import GymMap from '@/components/LazyGymMap'
 import { useAuth } from '@/contexts/auth-context'
 import { apiFetch } from '@/lib/api'
 
