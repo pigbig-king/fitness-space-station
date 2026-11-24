@@ -54,6 +54,13 @@ export default function GymDetailPage() {
   const [eqSerialLabel, setEqSerialLabel] = useState('')
   const [eqQuantity, setEqQuantity] = useState(1)
   const [eqStatus, setEqStatus] = useState('NORMAL')
+  const [toast, setToast] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+
+  function notify(msg: string) {
+    setToast(msg)
+    window.setTimeout(() => setToast(null), 2200)
+  }
 
   const query = useQuery({
     queryKey: ['gym', id],
@@ -74,6 +81,7 @@ export default function GymDetailPage() {
     mutationFn: () => apiFetch(`/gyms/${id}/review`, { method: 'POST', token, body: { rating, comment: comment.trim() || undefined } }),
     onSuccess: () => {
       setComment('')
+      notify('评价已提交')
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
   })
@@ -83,6 +91,7 @@ export default function GymDetailPage() {
     onSuccess: () => {
       setReviewFor(null)
       setEqComment('')
+      notify('评价已提交')
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
   })
@@ -106,17 +115,24 @@ export default function GymDetailPage() {
       setEqQuantity(1)
       setEqStatus('NORMAL')
       setShowAddForm(false)
+      notify('已添加器械')
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
   })
   const updateEquipmentMutation = useMutation({
     mutationFn: (args: { equipmentId: string; status: string }) =>
       apiFetch(`/gyms/${id}/equipment/${args.equipmentId}`, { method: 'PATCH', token, body: { status: args.status } }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['gym', id] }),
+    onSuccess: () => {
+      notify('已更新状态')
+      void queryClient.invalidateQueries({ queryKey: ['gym', id] })
+    },
   })
   const removeEquipmentMutation = useMutation({
     mutationFn: (equipmentId: string) => apiFetch(`/gyms/${id}/equipment/${equipmentId}`, { method: 'DELETE', token }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['gym', id] }),
+    onSuccess: () => {
+      notify('已删除器械')
+      void queryClient.invalidateQueries({ queryKey: ['gym', id] })
+    },
   })
 
   if (query.isLoading) return <p className="p-8 text-center text-muted-foreground">加载中…</p>
@@ -204,9 +220,15 @@ export default function GymDetailPage() {
                       {e.reviews.length > 0 ? `评价(${e.reviews.length})` : '评价'}
                     </button>
                     {token && (
-                      <button type="button" className="text-xs text-destructive hover:underline" onClick={() => removeEquipmentMutation.mutate(e.id)}>
-                        删除
-                      </button>
+                      confirmId === e.id ? (
+                        <button type="button" className="text-xs font-medium text-destructive hover:underline" onClick={() => { removeEquipmentMutation.mutate(e.id); setConfirmId(null) }}>
+                          确认删除？
+                        </button>
+                      ) : (
+                        <button type="button" className="text-xs text-destructive hover:underline" onClick={() => setConfirmId(e.id)}>
+                          删除
+                        </button>
+                      )
                     )}
                   </div>
 
@@ -283,6 +305,12 @@ export default function GymDetailPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-foreground px-4 py-2 text-sm text-background shadow-lg">
+          {toast}
+        </div>
       )}
     </main>
   )
