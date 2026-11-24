@@ -1,7 +1,17 @@
 # ---- 构建阶段：装依赖 + 构建 api ----
 FROM node:22-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Alpine 软件源换阿里云镜像（国内构建提速）
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org#https://mirrors.aliyun.com#g' /etc/apk/repositories
+
+# pnpm 通过 npm 装（配合下面设置的国内 registry）
+RUN npm config set registry https://registry.npmmirror.com \
+    && npm i -g pnpm@9
+
 WORKDIR /app
+
+# pnpm 也指向国内 registry
+RUN pnpm config set registry https://registry.npmmirror.com
 
 # 先复制清单以利用缓存
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -13,12 +23,18 @@ RUN pnpm install --frozen-lockfile
 
 # 复制源码并构建
 COPY . .
+# Prisma 引擎走国内镜像，避免从境外下载二进制卡住
+ENV PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api build
 
 # ---- 运行阶段 ----
 FROM node:22-alpine AS runner
-RUN apk add --no-cache openssl
+
+# 同样换阿里云镜像源
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org#https://mirrors.aliyun.com#g' /etc/apk/repositories \
+    && apk add --no-cache openssl
+
 WORKDIR /app
 ENV NODE_ENV=production
 
