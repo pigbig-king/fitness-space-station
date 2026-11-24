@@ -2,13 +2,16 @@ node_modules
 **/node_modules
 .git
 .github
+.gitattributes
 dist
 **/dist
-uploads
-**/uploads
 *.log
 .env
 **/.env
 .vscode
 .idea
 tools
+data
+
+# 只排除运行时的上传文件存储目录，不影响源码目录 apps/api/src/uploads
+apps/api/uploads
