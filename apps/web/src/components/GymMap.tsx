@@ -90,15 +90,26 @@ function applyGyms(map: Map, gyms: GymMarker[]) {
 
 function buildPopupHTML(p: Record<string, string>): string {
   const damaged = Number(p.damaged) > 0 ? ` · 损坏 ${p.damaged}` : ''
-  return `<div style="min-width:170px">
-    <strong style="font-size:14px">${p.name}</strong>
-    <div style="margin:4px 0 6px;color:#888;font-size:11px">${p.district}</div>
-    <div style="display:flex;flex-direction:column;gap:3px;font-size:13px">
-      <button data-id="${p.id}" data-section="equipment" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">器械：${p.equip}${damaged}</button>
-      <button data-id="${p.id}" data-section="price" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">价格：${p.price}</button>
-      <button data-id="${p.id}" data-section="environment" style="text-align:left;color:#4f46e5;cursor:pointer;background:none;border:none;padding:0">环境：${p.environment}</button>
+  const row = (icon: string, label: string, value: string, section: string) =>
+    `<button data-id="${p.id}" data-section="${section}" class="popup-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:#f6f5ff;border:1px solid #e7e3ff;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:13px;color:#1f2937;transition:background .15s,border-color .15s;">
+      <span style="font-weight:600;white-space:nowrap;">${icon} ${label}</span>
+      <span style="color:#6b7280;font-size:12px;text-align:right;">${value}</span>
+    </button>`
+
+  return `
+  <div style="min-width:240px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;">
+    <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:14px 32px 14px 16px;color:#fff;">
+      <div style="font-size:15px;font-weight:700;line-height:1.35;word-break:break-all;">${p.name}</div>
+      ${p.district ? `<div style="margin-top:3px;font-size:12px;opacity:0.9;">📍 ${p.district}</div>` : ''}
     </div>
-    <button data-id="${p.id}" style="margin-top:6px;color:#333;cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;font-size:12px">查看详情 →</button>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+      ${row('🏋️', '器械', p.equip + damaged, 'equipment')}
+      ${row('💰', '价格', p.price, 'price')}
+      ${row('🌿', '环境', p.environment, 'environment')}
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid #f1f1f5;">
+      <button data-id="${p.id}" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:9px;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;">查看详情 →</button>
+    </div>
   </div>`
 }
 
@@ -210,7 +221,7 @@ export default function GymMap({
           const props = f.properties as Record<string, string>
           const coords = (f.geometry as { coordinates: [number, number] }).coordinates
           popupRef.current?.remove()
-          popupRef.current = new Popup({ offset: 28 }).setLngLat(coords).setHTML(buildPopupHTML(props)).addTo(m)
+          popupRef.current = new Popup({ offset: 28, className: 'gym-popup', closeButton: true }).setLngLat(coords).setHTML(buildPopupHTML(props)).addTo(m)
           popupRef.current.getElement()?.addEventListener('click', (ev: MouseEvent) => {
             const el = (ev.target as HTMLElement).closest('[data-id]')
             if (!el) return
