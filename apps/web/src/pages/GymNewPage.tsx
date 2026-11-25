@@ -8,6 +8,7 @@ import { apiFetch, uploadImage } from '@/lib/api'
 
 type EquipmentRow = { name: string; professionalName: string; serialLabel: string; quantity: number; status: string }
 type GeoResult = { name: string; city: string; district?: string; lat: number; lng: number }
+type ParsedAddress = { province: string; city: string; district: string; street: string; lat: number | null; lng: number | null }
 
 export default function GymNewPage() {
   const { token } = useAuth()
@@ -23,6 +24,13 @@ export default function GymNewPage() {
   const [geoQ, setGeoQ] = useState('')
   const [suggestions, setSuggestions] = useState<GeoResult[]>([])
   const [focus, setFocus] = useState<{ lng: number; lat: number; zoom?: number } | null>(null)
+  const [parsing, setParsing] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function notify(msg: string) {
+    setToast(msg)
+    window.setTimeout(() => setToast(null), 2500)
+  }
 
   useEffect(() => {
     const q = geoQ.trim()
@@ -51,6 +59,37 @@ export default function GymNewPage() {
 
   function fieldCls(key: string) {
     return fieldErrors.has(key) ? 'border-destructive ring-1 ring-destructive/30' : ''
+  }
+
+  async function parseAddress() {
+    const text = form.address.trim()
+    if (!text) return
+    setParsing(true)
+    setError(null)
+    try {
+      const r = await apiFetch<ParsedAddress | null>(`/geo/parse?q=${encodeURIComponent(text)}`)
+      if (!r || (!r.city && !r.district)) {
+        setError('未能从地址中识别出城市/区域，请补全城市或直接在地图上点击选点')
+        return
+      }
+      if (r.city) setField('city', r.city)
+      if (r.district) setField('district', r.district)
+      if (r.lat != null && r.lng != null) {
+        setLatLng({ lng: r.lng, lat: r.lat })
+        setFocus({ lng: r.lng, lat: r.lat, zoom: 14 })
+        setFieldErrors((prev) => {
+          const n = new Set(prev)
+          n.delete('latLng')
+          n.delete('city')
+          return n
+        })
+      }
+      notify(`已识别：${r.city || '—'}${r.district ? ' · ' + r.district : ''} · 位置已锁定`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setParsing(false)
+    }
   }
 
   async function handleImage(e: ChangeEvent<HTMLInputElement>) {
@@ -104,7 +143,7 @@ export default function GymNewPage() {
   return (
     <main className="mx-auto max-w-4xl p-4">
       <h1 className="mb-3 text-2xl font-semibold">提交健身房</h1>
-      <p className="mb-3 text-sm text-muted-foreground">在地图上点击选点，填写信息后提交（需管理员审核后公开）。</p>
+      <p className="mb-3 text-sm text-muted-foreground">粘贴完整地址可「一键解析」自动识别省/市/区并锁定地图位置；也可直接在地图上点击选点。提交后需管理员审核。</p>
 
       <div className="relative mb-2">
         <Input value={geoQ} onChange={(e) => setGeoQ(e.target.value)} placeholder="输入模糊地址搜索并跳转，如 合肥 / 蜀山区" />
@@ -119,6 +158,13 @@ export default function GymNewPage() {
                     setFocus({ lng: s.lng, lat: s.lat, zoom: 13 })
                     setField('city', s.city)
                     if (s.district) setField('district', s.district)
+                    setLatLng({ lng: s.lng, lat: s.lat })
+                    setFieldErrors((prev) => {
+                      const n = new Set(prev)
+                      n.delete('latLng')
+                      n.delete('city')
+                      return n
+                    })
                     setGeoQ(s.name)
                     setSuggestions([])
                   }}
@@ -153,7 +199,12 @@ export default function GymNewPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Input value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="名称 *" className={fieldCls('name')} />
-        <Input value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="地址 *" className={fieldCls('address')} />
+        <div className="flex gap-1">
+          <Input value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="地址 *（粘贴完整地址可一键解析）" className={`flex-1 ${fieldCls('address')}`} />
+          <Button type="button" size="sm" variant="outline" onClick={() => void parseAddress()} disabled={!form.address.trim() || parsing}>
+            {parsing ? '解析中…' : '解析'}
+          </Button>
+        </div>
         <Input value={form.city} onChange={(e) => setField('city', e.target.value)} placeholder="城市 *" className={fieldCls('city')} />
         <Input value={form.district} onChange={(e) => setField('district', e.target.value)} placeholder="区域（可选）" />
         <Input value={form.price} onChange={(e) => setField('price', e.target.value)} placeholder="价格（可选）" />
@@ -233,6 +284,12 @@ export default function GymNewPage() {
       <Button className="mt-4" onClick={() => void handleSubmit()} disabled={submitting || success}>
         {submitting ? '提交中…' : success ? '已提交，等待审核 ✓' : '提交'}
       </Button>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-foreground px-4 py-2 text-sm text-background shadow-lg">
+          {toast}
+        </div>
+      )}
     </main>
   )
 }

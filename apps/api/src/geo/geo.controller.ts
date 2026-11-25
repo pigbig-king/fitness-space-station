@@ -11,4 +11,10 @@ export class GeoController {
   search(@Query('q') q?: string) {
     return this.geoService.search(q ?? '')
   }
+
+  @Public()
+  @Get('parse')
+  parse(@Query('q') q?: string) {
+    return this.geoService.parse(q ?? '')
+  }
 }
