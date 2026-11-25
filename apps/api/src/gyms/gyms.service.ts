@@ -9,6 +9,7 @@ import { CreateEquipmentDto } from './dto/create-equipment.dto'
 import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
 import { UpdateEquipmentDto } from './dto/update-equipment.dto'
+import { UpdateGymInfoDto } from './dto/update-gym-info.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 
 @Injectable()
@@ -249,6 +250,18 @@ export class GymsService {
     if (!equipment || equipment.gymId !== gymId) throw new NotFoundException('器材不存在')
     await this.prisma.gymEquipment.delete({ where: { id: equipmentId } })
     return { deleted: true }
+  }
+
+  async updateInfo(gymId: string, dto: UpdateGymInfoDto) {
+    const gym = await this.prisma.gym.findUnique({ where: { id: gymId } })
+    if (!gym || gym.status !== 'APPROVED') throw new NotFoundException('健身房不存在')
+    return this.prisma.gym.update({
+      where: { id: gymId },
+      data: {
+        ...(dto.price !== undefined ? { price: dto.price.trim() || null } : {}),
+        ...(dto.environment !== undefined ? { environment: dto.environment.trim() || null } : {}),
+      },
+    })
   }
 
   async remove(gymId: string) {

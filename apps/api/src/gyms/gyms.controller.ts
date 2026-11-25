@@ -8,6 +8,7 @@ import { CreateEquipmentDto } from './dto/create-equipment.dto'
 import { CreateEquipmentReviewDto } from './dto/create-equipment-review.dto'
 import { CreateReviewDto } from './dto/create-review.dto'
 import { UpdateEquipmentDto } from './dto/update-equipment.dto'
+import { UpdateGymInfoDto } from './dto/update-gym-info.dto'
 import { UpdateGymDto } from './dto/update-gym.dto'
 import { GymsService } from './gyms.service'
 
@@ -106,6 +107,11 @@ export class GymsController {
   @Delete(':id/equipment/:equipmentId')
   removeEquipment(@Param('id') id: string, @Param('equipmentId') equipmentId: string) {
     return this.gymsService.removeEquipment(id, equipmentId)
+  }
+
+  @Patch(':id/info')
+  updateInfo(@Param('id') id: string, @Body() dto: UpdateGymInfoDto) {
+    return this.gymsService.updateInfo(id, dto)
   }
 
   @Roles('ADMIN')

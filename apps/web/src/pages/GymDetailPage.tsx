@@ -56,6 +56,8 @@ export default function GymDetailPage() {
   const [eqStatus, setEqStatus] = useState('NORMAL')
   const [toast, setToast] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [editing, setEditing] = useState<'price' | 'environment' | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   function notify(msg: string) {
     setToast(msg)
@@ -134,11 +136,60 @@ export default function GymDetailPage() {
       void queryClient.invalidateQueries({ queryKey: ['gym', id] })
     },
   })
+  const updateInfoMutation = useMutation({
+    mutationFn: (body: { price?: string; environment?: string }) => apiFetch(`/gyms/${id}/info`, { method: 'PATCH', token, body }),
+    onSuccess: () => {
+      setEditing(null)
+      notify('已更新')
+      void queryClient.invalidateQueries({ queryKey: ['gym', id] })
+    },
+  })
 
   if (query.isLoading) return <p className="p-8 text-center text-muted-foreground">加载中…</p>
   if (query.isError || !query.data) return <p className="p-8 text-center text-destructive">健身房不存在</p>
 
   const gym = query.data
+
+  function renderEditableSection(key: 'price' | 'environment', title: string, value: string | null, placeholder: string) {
+    const isEditing = editing === key
+    return (
+      <section id={key} className="mb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-medium">{title}</h2>
+          {token && !isEditing && (
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => {
+                setEditing(key)
+                setEditValue(value ?? '')
+              }}
+            >
+              补充/编辑
+            </button>
+          )}
+        </div>
+        {isEditing ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder={placeholder}
+              className="h-9 flex-1 rounded-md border border-input bg-transparent px-2 text-sm"
+            />
+            <Button size="sm" disabled={updateInfoMutation.isPending} onClick={() => updateInfoMutation.mutate(key === 'price' ? { price: editValue } : { environment: editValue })}>
+              保存
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setEditing(null)}>
+              取消
+            </Button>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">{value || '暂无'}</p>
+        )}
+      </section>
+    )
+  }
 
   return (
     <main className="mx-auto max-w-4xl p-4">
@@ -155,15 +206,9 @@ export default function GymDetailPage() {
         <GymMap gyms={[{ id: gym.id, name: gym.name, lat: gym.lat, lng: gym.lng, district: gym.district, price: gym.price, environment: gym.environment, equipment: gym.equipment }]} />
       </div>
 
-      <section id="price" className="mb-4">
-        <h2 className="mb-2 font-medium">价格</h2>
-        <p className="text-muted-foreground">{gym.price || '暂无'}</p>
-      </section>
+      {renderEditableSection('price', '价格', gym.price, '如 月卡199元、单次30元')}
 
-      <section id="environment" className="mb-4">
-        <h2 className="mb-2 font-medium">环境</h2>
-        <p className="text-muted-foreground">{gym.environment || '暂无'}</p>
-      </section>
+      {renderEditableSection('environment', '环境', gym.environment, '如 通风好、器械齐全、有淋浴')}
 
       <section id="equipment" className="mb-6">
         <div className="mb-2 flex items-center justify-between">
