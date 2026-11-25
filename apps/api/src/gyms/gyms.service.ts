@@ -198,7 +198,7 @@ export class GymsService {
     const updated = await this.prisma.gym.update({ where: { id: gymId }, data, include: { equipment: true } })
     if (dto.status === 'APPROVED' || dto.status === 'REJECTED') {
       const type = dto.status === 'APPROVED' ? 'gym_approved' : 'gym_rejected'
-      void this.notifications.notify(gym.submittedById, type, null, 'gym', gymId)
+      await this.notifications.notify(gym.submittedById, type, null, 'gym', gymId)
     }
     return updated
   }

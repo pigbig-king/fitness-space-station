@@ -47,6 +47,23 @@ function pinSvg(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="42" viewBox="0 0 30 42"><path fill-rule="evenodd" fill="${PIN_COLOR}" stroke="#ffffff" stroke-width="1.5" d="M15 1C7.3 1 1 7.3 1 15c0 10.5 14 25 14 25s14-14.5 14-25C29 7.3 22.7 1 15 1z M15 10.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>`
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&':
+        return '&amp;'
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '"':
+        return '&quot;'
+      default:
+        return '&#39;'
+    }
+  })
+}
+
 function loadPinImage(map: Map): Promise<void> {
   return new Promise((resolve) => {
     if (map.hasImage('gym-pin')) {
@@ -91,16 +108,16 @@ function applyGyms(map: Map, gyms: GymMarker[]) {
 function buildPopupHTML(p: Record<string, string>): string {
   const damaged = Number(p.damaged) > 0 ? ` · 损坏 ${p.damaged}` : ''
   const row = (icon: string, label: string, value: string, section: string) =>
-    `<button data-id="${p.id}" data-section="${section}" class="popup-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:#f6f5ff;border:1px solid #e7e3ff;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:13px;color:#1f2937;transition:background .15s,border-color .15s;">
+    `<button data-id="${escapeHtml(p.id)}" data-section="${section}" class="popup-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:#f6f5ff;border:1px solid #e7e3ff;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:13px;color:#1f2937;transition:background .15s,border-color .15s;">
       <span style="font-weight:600;white-space:nowrap;">${icon} ${label}</span>
-      <span style="color:#6b7280;font-size:12px;text-align:right;">${value}</span>
+      <span style="color:#6b7280;font-size:12px;text-align:right;">${escapeHtml(value)}</span>
     </button>`
 
   return `
   <div style="min-width:240px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;">
     <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:14px 32px 14px 16px;color:#fff;">
-      <div style="font-size:15px;font-weight:700;line-height:1.35;word-break:break-all;">${p.name}</div>
-      ${p.district ? `<div style="margin-top:3px;font-size:12px;opacity:0.9;">📍 ${p.district}</div>` : ''}
+      <div style="font-size:15px;font-weight:700;line-height:1.35;word-break:break-all;">${escapeHtml(p.name)}</div>
+      ${p.district ? `<div style="margin-top:3px;font-size:12px;opacity:0.9;">📍 ${escapeHtml(p.district)}</div>` : ''}
     </div>
     <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
       ${row('🏋️', '器械', p.equip + damaged, 'equipment')}
@@ -108,7 +125,7 @@ function buildPopupHTML(p: Record<string, string>): string {
       ${row('🌿', '环境', p.environment, 'environment')}
     </div>
     <div style="padding:10px 16px;border-top:1px solid #f1f1f5;">
-      <button data-id="${p.id}" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:9px;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;">查看详情 →</button>
+      <button data-id="${escapeHtml(p.id)}" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:9px;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;">查看详情 →</button>
     </div>
   </div>`
 }

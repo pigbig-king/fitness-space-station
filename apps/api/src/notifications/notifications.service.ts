@@ -8,7 +8,7 @@ export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   notify(userId: string, type: NotificationType, actorId: string | null, targetType: string, targetId: string) {
-    if (!actorId || userId === actorId) return Promise.resolve(null)
+    if (userId === actorId) return Promise.resolve(null)
     return this.prisma.notification.create({
       data: { userId, type, actorId, targetType, targetId },
     })
